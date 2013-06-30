@@ -446,7 +446,9 @@ module ActiveRecord #:nodoc:
                                          :precision => type_col.precision
             end
 
-            self.connection.add_index versioned_table_name, versioned_foreign_key
+            index_name = "index_#{versioned_table_name}_index_#{versioned_foreign_key}"
+            index_name = "index_#{versioned_table_name[0..versioned_table_name.length/2]}_index_#{versioned_foreign_key[0..versioned_foreign_key.length/2]}" if index_name.length > 60
+            self.connection.add_index versioned_table_name, versioned_foreign_key, :name => index_name
           end
 
           # Rake migration task to drop the versioned table
