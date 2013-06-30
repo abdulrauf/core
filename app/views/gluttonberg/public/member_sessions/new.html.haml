@@ -1,4 +1,4 @@
-= form_for(@member_session, :url => member_login_path, :method => :post) do |f|
+= form_for(@member_session, :url => post_member_login_path, :method => :post) do |f|
   - if @member_session.errors.any?
     #error
       %ul
@@ -22,4 +22,3 @@
   %fieldset.form_element.register_link.indent
     %a{:href=> new_member_path}
       = t('not_registered_yet')
-        
