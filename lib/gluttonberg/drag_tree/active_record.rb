@@ -29,7 +29,7 @@ module Gluttonberg
 
         def find_by_sorted_ids(new_sorted_element_ids)
           # find records in unorder list
-          elements = self.find(new_sorted_element_ids )
+          elements = self.where(:id => new_sorted_element_ids).all
           # sort it using ruby method
           sorted_elements = []
           new_sorted_element_ids.each do |id|

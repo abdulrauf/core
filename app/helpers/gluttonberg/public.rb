@@ -265,7 +265,7 @@ module Gluttonberg
         if !pk.blank?
           asset = pk
         else !wk.blank?
-          asset = Asset.find(:first , :conditions => { :id => wk } )
+          asset = Asset.where(:id => wk).first
         end
         unless asset.blank?
           path = asset.url

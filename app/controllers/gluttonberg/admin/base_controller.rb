@@ -101,7 +101,7 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
           ids = params[:localization].split("-")
           {:locale => ids[0]}
         else
-          locale = Gluttonberg::Locale.find(:first , :conditions => { :default => true })
+          locale = Gluttonberg::Locale.where(:default => true).first
           # Inject the ids into the params so our form fields behave
           params[:localization] = "#{locale.id}"
           {:locale => locale.id}

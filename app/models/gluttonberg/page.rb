@@ -234,7 +234,7 @@ module Gluttonberg
     end
 
     def self.home_page
-      Page.find( :first ,  :conditions => [ "home = ? " , true ] )
+      Page.where("home = ? " , true).first
     end
 
     def self.home_page_name
@@ -275,7 +275,7 @@ module Gluttonberg
           puts("Generating stubbed content for new page #{page.id}")
 
           [PlainTextContent , HtmlContent , ImageContent].each do |klass|
-            list = klass.find(:all , :conditions => { :page_id => page.id})
+            list = klass.where(:page_id => page.id).all
             list.each do |item|
               found = page.description.contains_section?(item.section_name , item.class.to_s.demodulize.underscore)
               puts found

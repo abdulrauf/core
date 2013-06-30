@@ -11,7 +11,7 @@ module Gluttonberg
         record_history :@page
 
         def index
-          @pages = Page.find(:all , :conditions => { :parent_id => nil } , :order => 'position' )
+          @pages = Page.where(:parent_id => nil).order('position ASC').all
         end
 
         def show
@@ -24,7 +24,7 @@ module Gluttonberg
         end
 
         def delete
-          default_localization = Gluttonberg::PageLocalization.find(:first , :conditions => { :page_id => @page.id , :locale_id => Gluttonberg::Locale.first_default.id } )
+          default_localization = Gluttonberg::PageLocalization.where(:page_id => @page.id , :locale_id => Gluttonberg::Locale.first_default.id).first
           display_delete_confirmation(
             :title      => "Delete “#{default_localization.name}” page?",
             :url        => admin_page_url(@page),
@@ -88,12 +88,12 @@ module Gluttonberg
         end
 
         def duplicate
-          @page = Page.find(params[:id])
+          @page = Page.where(:id => params[:id]).first
           @duplicated_page = @page.duplicate
           @duplicated_page.user_id = current_user.id
           if @duplicated_page
             flash[:notice] = "The page was successfully duplicated."
-            default_localization = Gluttonberg::PageLocalization.find(:first , :conditions => { :page_id => @duplicated_page.id , :locale_id => Gluttonberg::Locale.first_default.id } )
+            default_localization = Gluttonberg::PageLocalization.where(:page_id => @duplicated_page.id , :locale_id => Gluttonberg::Locale.first_default.id).first
             redirect_to edit_admin_page_page_localization_path( :page_id => @duplicated_page.id, :id => default_localization.id)
           else
             flash[:error] = "There was an error duplicating the page."
@@ -112,7 +112,7 @@ module Gluttonberg
         end
 
         def find_page
-          @page = Page.find( params[:id])
+          @page = Page.where(:id => params[:id]).first
           raise ActiveRecord::RecordNotFound unless @page
         end
 

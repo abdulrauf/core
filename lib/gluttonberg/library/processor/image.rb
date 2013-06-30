@@ -49,7 +49,7 @@ module Gluttonberg
         end
 
         def generate_cropped_image(x , y , w , h, image_type)
-          asset_thumb = asset.asset_thumbnails.find(:first , :conditions => {:thumbnail_type => image_type.to_s })
+          asset_thumb = asset.asset_thumbnails.where(:thumbnail_type => image_type.to_s).first
           if asset_thumb.blank?
             asset_thumb = asset.asset_thumbnails.create({:thumbnail_type => image_type.to_s , :user_generated => true })
           else
@@ -76,7 +76,7 @@ module Gluttonberg
         # TODO: generate thumbnails with the correct extension
         def generate_image_thumb
           asset.class.sizes.each_pair do |name, config|
-            asset_thumb = asset.asset_thumbnails.find(:first , :conditions => {:thumbnail_type => name.to_s, :user_generated => true })
+            asset_thumb = asset.asset_thumbnails.where(:thumbnail_type => name.to_s, :user_generated => true).first
             if asset_thumb.blank?
               begin
                 image = QuickMagick::Image.read(asset.tmp_original_file_on_disk).first

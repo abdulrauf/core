@@ -17,7 +17,7 @@ module Gluttonberg
         end
 
         def delete
-          @comment = Comment.find(params[:id])
+          @comment = Comment.where(:id => params[:id]).first
           display_delete_confirmation(
             :title      => "Delete Comment ?",
             :url        => admin_comment_destroy_path(@comment),
@@ -28,14 +28,14 @@ module Gluttonberg
 
         def moderation
           authorize_user_for_moderation
-          @comment = Comment.find(params[:id])
+          @comment = Comment.where(:id => params[:id]).first
           @comment.moderate(params[:moderation])
           Gluttonberg::Feed.log(current_user,@comment, truncate(@comment.body, :length => 100) , params[:moderation])
           redirect_to :back
         end
 
         def destroy
-          @comment = Comment.find(params[:id])
+          @comment = Comment.where(:id => params[:id]).first
           if @comment.delete
             flash[:notice] = "The comment was successfully deleted."
             Gluttonberg::Feed.log(current_user,@comment, truncate(@comment.body, :length => 100) , "deleted")
@@ -73,7 +73,7 @@ module Gluttonberg
         end
 
         def block_comment_author
-          @comment = Comment.find(params[:id])
+          @comment = Comment.where(:id => params[:id]).first
 
           author_string = ""
           unless @comment.author_name.blank? || @comment.author_name == "NULL" || @comment.author_name.length < 3
@@ -106,14 +106,14 @@ module Gluttonberg
         protected
 
           def find_blog
-            @blog = Blog.find(params[:blog_id])
+            @blog = Blog.where(:id => params[:blog_id]).first
             raise ActiveRecord::RecordNotFound unless @blog
           end
 
           def find_article(include_model=[])
             conditions = { :id => params[:article_id] }
             conditions[:user_id] = current_user.id unless current_user.super_admin?
-            @article = Article.find(:first , :conditions => conditions , :include => include_model )
+            @article = Article.where(conditions).include(include_model).first
             raise ActiveRecord::RecordNotFound unless @article
           end
 

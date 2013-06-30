@@ -41,7 +41,7 @@ module Gluttonberg
 
         # Generate auto titles for those assets without name
         def generate_name
-          assets = Asset.find(:all , :conditions => { :name => "" } )
+          assets = Asset.where(:name => "").all
           assets.each do |asset|
             p asset.file_name
             asset.name = asset.file_name.split(".")[0]

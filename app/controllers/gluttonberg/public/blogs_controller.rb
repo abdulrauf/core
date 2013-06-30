@@ -1,7 +1,7 @@
 module Gluttonberg
   module Public
-    class BlogsController <  Gluttonberg::Public::BaseController
-  
+    class BlogsController < Gluttonberg::Public::BaseController
+
       def index
         if Gluttonberg::Blog.published.all.size == 0
           redirect_to "/"
@@ -11,34 +11,33 @@ module Gluttonberg
             redirect_to blog_path(current_localization_slug , blog.slug)
           else
             redirect_to blog_path(:id =>blog.slug)
-          end  
+          end
         else
           @blogs = Gluttonberg::Blog.published.all
         end
       end
-  
+
       def show
-        @blog = Gluttonberg::Blog.published.first(:conditions => {:slug => params[:id]}, :include => [:articles])
-        
+        @blog = Gluttonberg::Blog.published.where(:slug => params[:id]).include(:articles).first
+
         if @blog.blank?
-          @blog = Gluttonberg::Blog.published.first(:conditions => {:previous_slug => params[:id]})
-          
+          @blog = Gluttonberg::Blog.published.where(:previous_slug => params[:id]).first
+
           unless @blog.blank?
              redirect_to blog_path(:id => @blog.slug) , :status => 301
              return
           end
         end
-        
+
         raise ActiveRecord::RecordNotFound.new if @blog.blank?
         @articles = @blog.articles.published
         @tags = Gluttonberg::Article.published.tag_counts_on(:tag)
         respond_to do |format|
-           format.html
-           format.rss { render :layout => false }
+          format.html
+          format.rss { render :layout => false }
         end
-        
       end
-  
+
     end
   end
 end

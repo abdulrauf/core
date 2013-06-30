@@ -73,7 +73,7 @@ module Gluttonberg
         asset_info = ""
         asset_name = "Nothing selected"
         unless asset_id.blank?
-          asset = Gluttonberg::Asset.find(:first , :conditions => {:id => asset_id})
+          asset = Gluttonberg::Asset.where(:id => asset_id).first
           asset_name =  asset.name if asset
           if asset
             if asset.category && asset.category.to_s.downcase == "image"
@@ -154,7 +154,7 @@ module Gluttonberg
       end
 
       def gallery_images_ul(id , gallery_thumb_image , gallery_large_image ,html_opts_for_ul = {})
-        gallery = Gluttonberg::Gallery.find(id)
+        gallery = Gluttonberg::Gallery.where(:id => id).first
         unless gallery.blank? || gallery.gallery_images.blank?
          options = ""
          gallery.gallery_images.each do |g_image|

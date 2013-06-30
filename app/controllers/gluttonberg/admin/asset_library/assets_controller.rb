@@ -47,7 +47,7 @@ module Gluttonberg
           @category_filter = ( params[:filter].blank? ? "all" : params[:filter] )
           if @category_filter == "all"
           else
-            @category = AssetCategory.find(:first , :conditions => { :name => @category_filter })
+            @category = AssetCategory.where(:name => @category_filter).first
             @assets = @assets.where({:asset_type_id => @category.asset_type_ids }) unless @category.blank? || @category.asset_type_ids.blank?
           end
 
@@ -59,7 +59,7 @@ module Gluttonberg
         end
 
         def browser_collection
-          @collection = AssetCollection.find(params[:id])
+          @collection = AssetCollection.where(:id => params[:id]).first
           @category_filter = ( params[:filter].blank? ? "all" : params[:filter] )
           if @category_filter == "all"
             @assets = @collection.assets
@@ -78,7 +78,7 @@ module Gluttonberg
             # ignore asset category if user selects 'all' from category
             @assets = Asset.includes(:asset_type)
           else
-            req_category = AssetCategory.first(:conditions => "name = '#{params[:category]}'" )
+            req_category = AssetCategory.where(:name => params[:category]).first
             # if category is not found then raise exception
             if req_category.blank?
               raise ActiveRecord::RecordNotFound
@@ -233,68 +233,67 @@ module Gluttonberg
         end
 
         private
-            def find_asset
-              conditions = { :id => params[:id] }
-              @asset = Asset.find(:first , :conditions => conditions )
-              raise ActiveRecord::RecordNotFound  if @asset.blank?
-            end
+          def find_asset
+            @asset = Asset.where(:id => params[:id] ).first
+            raise ActiveRecord::RecordNotFound  if @asset.blank?
+          end
 
-            def find_categories
-              @categories = AssetCategory.all
-            end
+          def find_categories
+            @categories = AssetCategory.all
+          end
 
-            def prepare_to_edit
-              @collections = AssetCollection.order("name")
-            end
+          def prepare_to_edit
+            @collections = AssetCollection.order("name")
+          end
 
-            def authorize_user
-              authorize! :manage, Gluttonberg::Asset
-            end
+          def authorize_user
+            authorize! :manage, Gluttonberg::Asset
+          end
 
-            def authorize_user_for_destroy
-              authorize! :destroy, Gluttonberg::Asset
-            end
+          def authorize_user_for_destroy
+            authorize! :destroy, Gluttonberg::Asset
+          end
 
-            # if new collection is provided it will create the object for that
-            # then it will add new collection id into other existing collection ids
-            def process_new_collection_and_merge(params)
-              params[:asset][:asset_collection_ids] = "" if params[:asset][:asset_collection_ids].blank? || params[:asset][:asset_collection_ids] == "null"  || params[:asset][:asset_collection_ids] == "undefined"
-              params[:asset][:asset_collection_ids] = params[:asset][:asset_collection_ids].split(",") if params[:asset][:asset_collection_ids].kind_of?(String)
+          # if new collection is provided it will create the object for that
+          # then it will add new collection id into other existing collection ids
+          def process_new_collection_and_merge(params)
+            params[:asset][:asset_collection_ids] = "" if params[:asset][:asset_collection_ids].blank? || params[:asset][:asset_collection_ids] == "null"  || params[:asset][:asset_collection_ids] == "undefined"
+            params[:asset][:asset_collection_ids] = params[:asset][:asset_collection_ids].split(",") if params[:asset][:asset_collection_ids].kind_of?(String)
 
-              the_collection = find_or_create_asset_collection_from_hash(params["new_collection"])
-               unless the_collection.blank?
-                 params[:asset][:asset_collection_ids] = params[:asset][:asset_collection_ids] || []
-                 unless params[:asset][:asset_collection_ids].include?(the_collection.id.to_s)
-                   params[:asset][:asset_collection_ids] <<  the_collection.id
-                 end
+            the_collection = find_or_create_asset_collection_from_hash(params["new_collection"])
+             unless the_collection.blank?
+               params[:asset][:asset_collection_ids] = params[:asset][:asset_collection_ids] || []
+               unless params[:asset][:asset_collection_ids].include?(the_collection.id.to_s)
+                 params[:asset][:asset_collection_ids] <<  the_collection.id
                end
-            end
+             end
+          end
 
-             # Returns an AssetCollection (either by finding a matching existing one or creating a new one)
-             # requires a hash with the following keys
-             #   do_new_collection: If not present the method returns nil and does nothing
-             #   new_collection_name: The name for the collection to return.
-             def find_or_create_asset_collection_from_hash(param_hash)
-               # Create new AssetCollection if requested by the user
-               if param_hash
-                   if param_hash.has_key?('new_collection_name')
-                     unless param_hash['new_collection_name'].blank?
-                       #create options for first or create
-                       options = {:name => param_hash['new_collection_name'] }
+           # Returns an AssetCollection (either by finding a matching existing one or creating a new one)
+           # requires a hash with the following keys
+           #   do_new_collection: If not present the method returns nil and does nothing
+           #   new_collection_name: The name for the collection to return.
+           def find_or_create_asset_collection_from_hash(param_hash)
+             # Create new AssetCollection if requested by the user
+             if param_hash
+                 if param_hash.has_key?('new_collection_name')
+                   unless param_hash['new_collection_name'].blank?
+                     #create options for first or create
+                     options = {:name => param_hash['new_collection_name'] }
 
-                       # Retireve the existing AssetCollection if it matches or create a new one
-                       the_collection = AssetCollection.where(options).first
-                       unless the_collection
-                         the_collection = AssetCollection.new(options)
-                         the_collection.user_id = current_user.id
-                         the_collection.save
-                       end
+                     # Retireve the existing AssetCollection if it matches or create a new one
+                     the_collection = AssetCollection.where(options).first
+                     unless the_collection
+                       the_collection = AssetCollection.new(options)
+                       the_collection.user_id = current_user.id
+                       the_collection.save
+                     end
 
-                       the_collection
-                     end # new_collection_name value
-                   end # new_collection_name key
-                 end # param_hash
-             end # find_or_create_asset_collection_from_hash
+                     the_collection
+                   end # new_collection_name value
+                 end # new_collection_name key
+               end # param_hash
+           end # find_or_create_asset_collection_from_hash
       end # controller
     end
   end

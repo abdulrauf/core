@@ -120,7 +120,7 @@ module Gluttonberg
         end
 
         def welcome
-           @member = Member.find(params[:id])
+           @member = Member.where(:id => params[:id]).first
            MemberNotifier.welcome( @member ).deliver
            flash[:notice] = "Welcome email is successfully sent to the member."
            redirect_to :action => :index
@@ -128,7 +128,7 @@ module Gluttonberg
 
        private
           def find_member
-            @member = Member.find(params[:id])
+            @member = Member.where(:id => params[:id]).first
             raise ActiveRecord::RecordNotFound  if @member.blank?
           end
 

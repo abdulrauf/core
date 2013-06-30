@@ -18,7 +18,7 @@ module Admin
     end
 
     def show
-      @<%= singular_name %> = <%= class_name %>.find(params[:id])
+      @<%= singular_name %> = <%= class_name %>.where(:id => params[:id]).first
     end
 
     def new
@@ -26,7 +26,7 @@ module Admin
     end
 
     def edit
-      @<%= singular_name %> = <%= class_name %>.find(params[:id])
+      @<%= singular_name %> = <%= class_name %>.where(:id => params[:id]).first
       <% if localized? %>@<%= singular_name %>.load_localization(params[:locale_id]) unless params[:locale_id].blank? <%end%>
     end
 
@@ -41,7 +41,7 @@ module Admin
     end
 
     def update
-      @<%= singular_name %> = <%= class_name %>.find(params[:id])
+      @<%= singular_name %> = <%= class_name %>.where(:id => params[:id]).first
       <% if localized? %>@<%= singular_name %>.load_localization(params[:locale_id]) unless params[:locale_id].blank? <%end%>
       @<%= singular_name %>.current_slug = @<%= singular_name %>.slug
       @<%= singular_name %>.assign_attributes(params[:<%= singular_name %>])
@@ -56,7 +56,7 @@ module Admin
     end
 
     def delete
-      @<%= singular_name %> = <%= class_name %>.find(params[:id])
+      @<%= singular_name %> = <%= class_name %>.where(:id => params[:id]).first
       display_delete_confirmation(
         :title      => "Delete <%= class_name %> '#{@<%= singular_name %>.id}'?",
         :url        => admin_<%= singular_name %>_path(@<%= singular_name %>),
@@ -66,7 +66,7 @@ module Admin
     end
 
     def destroy
-      @<%= singular_name %> = <%= class_name %>.find(params[:id])
+      @<%= singular_name %> = <%= class_name %>.where(:id => params[:id]).first
       if @<%= singular_name %>.destroy
         flash[:notice] = "The <%= singular_name.titleize.downcase %> was successfully deleted."
         redirect_to admin_<%= plural_name %>_path
@@ -95,7 +95,7 @@ module Admin
     <% end %>
 
     def duplicate
-      @<%= singular_name %> = <%= class_name %>.find(params[:id])
+      @<%= singular_name %> = <%= class_name %>.where(:id => params[:id]).first
       @cloned_<%= singular_name %> = @<%= singular_name %>.duplicate!
       if @cloned_<%= singular_name %>
         flash[:notice] = "The <%= singular_name.titleize.downcase %> was successfully duplicated."

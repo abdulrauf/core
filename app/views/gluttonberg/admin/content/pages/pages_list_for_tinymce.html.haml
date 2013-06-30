@@ -1,7 +1,7 @@
 - unless @pages.blank?
   %optgroup{:label => "Pages"}
     - @pages.each do |page|
-      - default_localization = Gluttonberg::PageLocalization.find(:first , :conditions => { :page_id => page.id , :locale_id => Gluttonberg::Locale.first_default.id } )
+      - default_localization = Gluttonberg::PageLocalization.where(:page_id => page.id , :locale_id => Gluttonberg::Locale.first_default.id).first
       %option{ :value => default_localization.public_path }= page.name
 
 - if @articles_count > 0

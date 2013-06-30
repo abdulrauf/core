@@ -287,7 +287,7 @@ module Gluttonberg
 
       def backend_logo(default_logo_image_path , html_opts={}, thumbnail_type = :backend_logo)
         backend_logo = Gluttonberg::Setting.get_setting("backend_logo")
-        asset = Asset.find(:first , :conditions => { :id => backend_logo } )
+        asset = Asset.where(:id => backend_logo).first
         unless asset.blank?
           path = thumbnail_type.blank? ? asset.url : asset.url_for(thumbnail_type)
           content_tag(:img , "" , html_opts.merge( :alt => asset.name , :src => path ) )
@@ -297,15 +297,15 @@ module Gluttonberg
       end
 
       def render_flash_messages
-          html = ""
-          ["notice", "warning", "error"].each do |type|
-              unless flash[type.intern].nil?
-                html << content_tag("div", flash[type.intern].to_s.html_safe,
-                    :id => "alert alert-#{type}", :class => "flash").html_safe
-              end
-          end
+        html = ""
+        ["notice", "warning", "error"].each do |type|
+            unless flash[type.intern].nil?
+              html << content_tag("div", flash[type.intern].to_s.html_safe,
+                  :id => "alert alert-#{type}", :class => "flash").html_safe
+            end
+        end
 
-          content_tag("div", html.html_safe, :id => "flash").html_safe
+        content_tag("div", html.html_safe, :id => "flash").html_safe
       end
 
 
