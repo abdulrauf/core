@@ -39,9 +39,9 @@ class Flag < ActiveRecord::Base
     record.errors.add(attr, "don't include '#{value}' as an option") if value and !record.flaggable.reasons.include?(value.to_sym)
   end
 
-  scope :all_approved, :conditions => { :approved => true }
-  scope :all_pending, :conditions => { :moderation_required => true }
-  scope :all_rejected, :conditions => { :approved => false , :moderation_required => false }
+  scope :all_approved, lambda { where(:approved => true) }
+  scope :all_pending, lambda { where(:moderation_required => true) }
+  scope :all_rejected, lambda { where(:approved => false , :moderation_required => false) }
 
   def moderate(params)
       if params == "approve"
