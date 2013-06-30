@@ -1,5 +1,7 @@
 module Gluttonberg
-  require 'engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
+  require 'engine' if defined?(Rails) && Rails::VERSION::MAJOR >= 3
+  require 'protected_attributes'
+  require 'rails-observers'
   require 'haml'
   require 'authlogic'
   require 'will_paginate'
