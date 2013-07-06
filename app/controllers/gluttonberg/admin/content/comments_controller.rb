@@ -5,7 +5,7 @@ module Gluttonberg
     module Content
       class CommentsController < Gluttonberg::Admin::BaseController
         include ActionView::Helpers::TextHelper
-
+        before_filter :is_blog_enabled
         before_filter :find_blog , :except => [:all , :approved, :rejected , :pending , :spam , :moderation , :delete , :destroy , :spam_detection_for_all_pending , :block_comment_author]
         before_filter :find_article ,  :except => [:index, :all , :approved , :rejected , :pending , :spam , :moderation , :delete , :destroy , :spam_detection_for_all_pending , :block_comment_author]
         before_filter :authorize_user ,  :except => [:moderation]
@@ -113,7 +113,7 @@ module Gluttonberg
           def find_article(include_model=[])
             conditions = { :id => params[:article_id] }
             conditions[:user_id] = current_user.id unless current_user.super_admin?
-            @article = Article.where(conditions).include(include_model).first
+            @article = Article.where(conditions).includes(include_model).first
             raise ActiveRecord::RecordNotFound unless @article
           end
 

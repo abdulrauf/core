@@ -68,7 +68,7 @@ module Gluttonberg
             @pages  = Page.where("id != ? " , @page.id).all
             @descriptions = []
             Gluttonberg::PageDescription.all.each do |name, desc|
-                @descriptions << [desc[:description], name]
+              @descriptions << [desc[:description], name]
             end
           end
 

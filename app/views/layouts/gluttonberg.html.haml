@@ -16,7 +16,7 @@
       = custom_stylesheet_link_tag
 
       /[if lt IE 9]
-        <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        = javascript_include_tag "gb_html5"
 
   %body
     .navbar.navbar-fixed-top
@@ -66,13 +66,14 @@
 
 
     .container-fluid
-      = render "/layouts/flash_messages"
+      - unless flash.blank?
+        = render "/layouts/flash_messages"
       = yield
 
       %hr
-        %footer
-          %p
-            &copy;
-            %a{:href => "http://freerangefuture.com", :target => "_blank"}
-              Freerange Future
-            #{Time.now.year}
+      %footer
+        %p
+          &copy;
+          %a{:href => "http://freerangefuture.com", :target => "_blank"}
+            Freerange Future
+          #{Time.now.year}

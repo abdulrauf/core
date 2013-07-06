@@ -4,7 +4,7 @@ module Gluttonberg
   module Admin
     module Membership
       class MembersController < Gluttonberg::Admin::Membership::BaseController
-        before_filter :find_member, :only => [:delete, :edit, :update, :destroy]
+        before_filter :find_member, :only => [:delete, :edit, :update, :destroy, :find_member]
         before_filter :authorize_user , :except => [:edit , :update]
         record_history :@member
         include Gluttonberg::Public
@@ -13,11 +13,7 @@ module Gluttonberg
           @members = Member.order(get_order).includes(:groups)
           unless params[:query].blank?
             query = clean_public_query(params[:query])
-            command = "like"
-
-            if ActiveRecord::Base.configurations[Rails.env]["adapter"] == "postgresql"
-              command = "ilike"
-            end
+            command = Gluttonberg.like_or_ilike
             @members = @members.where(["first_name #{command} :query OR last_name #{command} :query OR email #{command} :query OR bio #{command} :query " , :query => "%#{query}%" ])
           end
           @members = @members.paginate(:page => params[:page] , :per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items") )
@@ -120,7 +116,6 @@ module Gluttonberg
         end
 
         def welcome
-           @member = Member.where(:id => params[:id]).first
            MemberNotifier.welcome( @member ).deliver
            flash[:notice] = "Welcome email is successfully sent to the member."
            redirect_to :action => :index

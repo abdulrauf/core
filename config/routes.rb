@@ -7,12 +7,11 @@ Rails.application.routes.draw do
       root :to => "main#index"
 
       # Help
-      get("/help/:module_and_controller/:page" => "help#show", :module_and_controller => %r{\S+} , :as => :help)
+      get "/help/:module_and_controller/:page" => "help#show", :module_and_controller => %r{\S+} , :as => :help
 
       scope :module => 'content' do
         get "/flagged_contents" => "flag#index" , :as => :flagged_contents
         get '/flagged_contents/moderation/:id/:moderation' => "flag#moderation", :as => :flagged_contents_moderation
-        get 'content' => "main#index",      :as => :content
         resources :pages do
           get 'delete', :on => :member
           get 'duplicate', :on => :member
@@ -44,13 +43,13 @@ Rails.application.routes.draw do
           end
         end
 
-        get "/pages/move(.:format)" => "pages#move_node" , :as=> :page_move
+        post "/pages/move(.:format)" => "pages#move_node" , :as=> :page_move
         resources :galleries do
           get 'delete', :on => :member
           get 'add_image', :on => :member
           get 'remove_image' , :on => :member
         end
-        get "/galleries/move(.:format)" => "galleries#move_node" , :as=> :gallery_move
+        post "/galleries/move(.:format)" => "galleries#move_node" , :as=> :gallery_move
 
       end
 
@@ -73,15 +72,15 @@ Rails.application.routes.draw do
         resources :stylesheets do
           get 'delete', :on => :member
         end
-        get "/stylesheets/move(.:format)" => "stylesheets#move_node" , :as=> :stylesheet_move
+        post "/stylesheets/move(.:format)" => "stylesheets#move_node" , :as=> :stylesheet_move
       end
 
       namespace :membership do
         root :to =>  "main#index"
-        get "/groups/move(.:format)" => "groups#move_node" , :as=> :group_move
+        post "/groups/move(.:format)" => "groups#move_node" , :as=> :group_move
         get "members/export" => "members#export" , :as => :members_export
         get 'members/new_bulk'  => "members#new_bulk" , :as => :members_import
-        get 'members/create_bulk' => "members#create_bulk" , :as => :members_bulk_create
+        post 'members/create_bulk' => "members#create_bulk" , :as => :members_bulk_create
         resources :members do
           get 'delete', :on => :member
           get 'welcome' , :on => :member
@@ -101,10 +100,10 @@ Rails.application.routes.draw do
         end
         get "library" => "assets#index" , :as => :library
         get "search_assets" => "assets#search" , :as => :library_search
-        get "add_asset_using_ajax"  => "assets#ajax_new" , :as => :add_asset_using_ajax
+        post "add_asset_using_ajax"  => "assets#ajax_new" , :as => :add_asset_using_ajax#, :via => [:post]
         get "add_assets_in_bulk"  => "assets#add_assets_in_bulk" , :as => :add_assets_in_bulk
-        get "create_assets_in_bulk"  => "assets#create_assets_in_bulk" , :as => :create_assets_in_bulk
-        get "destroy_assets_in_bulk"  => "assets#destroy_assets_in_bulk" , :as => :destroy_assets_in_bulk
+        post "create_assets_in_bulk"  => "assets#create_assets_in_bulk" , :as => :create_assets_in_bulk
+        post "destroy_assets_in_bulk"  => "assets#destroy_assets_in_bulk" , :as => :destroy_assets_in_bulk
         get "browser"  => "assets#browser" , :as => :asset_browser
         get "browser-collection/:id"  => "assets#browser_collection" , :as => :asset_browser_collection
         get "assets/:category/page/:page"  => "assets#category" , :as => :asset_category
@@ -139,11 +138,11 @@ Rails.application.routes.draw do
 
 
       get "/mark_as_flag/:flaggable_type/:flaggable_id" => "flag#new" , :as => :mark_as_flag
-      get "/save_mark_as_flag" => "flag#create" , :as => :save_mark_as_flag
+      post "/save_mark_as_flag" => "flag#create" , :as => :save_mark_as_flag
       get "/articles/tag/:tag" => "articles#tag" , :as => :articles_by_tag
       get "/articles/unsubscribe/:reference" => "articles#unsubscribe" , :as => :unsubscribe_article_comments
       get "(/:locale)/member/login" => "member_sessions#new" , :as => :member_login
-      post "(/:locale)/member/login" => "member_sessions#create"  , :as => :post_member_login
+      post "(/:locale)/member/login" => "member_sessions#create"  , :as => :member_login
       get "(/:locale)/member/logout" => "member_sessions#destroy", :as => :member_logout
       get "(/:locale)/member/confirm/:key" => "members#confirm", :as => :member_confirmation
       get "(/:locale)/member/resend_confirmation" => "members#resend_confirmation", :as => :member_resend_confirmation

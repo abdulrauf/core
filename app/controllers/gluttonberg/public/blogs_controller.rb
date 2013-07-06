@@ -1,6 +1,7 @@
 module Gluttonberg
   module Public
-    class BlogsController < Gluttonberg::Public::BaseController
+    class BlogsController <  Gluttonberg::Public::BaseController
+      before_filter :is_blog_enabled
 
       def index
         if Gluttonberg::Blog.published.all.size == 0
@@ -18,10 +19,10 @@ module Gluttonberg
       end
 
       def show
-        @blog = Gluttonberg::Blog.published.where(:slug => params[:id]).include(:articles).first
+        @blog = Gluttonberg::Blog.published.first(:conditions => {:slug => params[:id]}, :include => [:articles])
 
         if @blog.blank?
-          @blog = Gluttonberg::Blog.published.where(:previous_slug => params[:id]).first
+          @blog = Gluttonberg::Blog.published.first(:conditions => {:previous_slug => params[:id]})
 
           unless @blog.blank?
              redirect_to blog_path(:id => @blog.slug) , :status => 301
@@ -33,9 +34,10 @@ module Gluttonberg
         @articles = @blog.articles.published
         @tags = Gluttonberg::Article.published.tag_counts_on(:tag)
         respond_to do |format|
-          format.html
-          format.rss { render :layout => false }
+           format.html
+           format.rss { render :layout => false }
         end
+
       end
 
     end

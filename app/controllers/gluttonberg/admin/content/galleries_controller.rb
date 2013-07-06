@@ -75,7 +75,7 @@ module Gluttonberg
         end
 
         def add_image
-          @gallery = Gallery.where( :id => params[:id] ).first
+          @gallery = Gallery.where(:id => params[:id]).first
           max_position = @gallery.gallery_images.length
           @gallery_item = @gallery.gallery_images.create(:asset_id => params[:asset_id] , :position => (max_position )  )
           @gallery_images = @gallery.gallery_images.order("position ASC")
@@ -92,7 +92,7 @@ module Gluttonberg
           end
 
           def find_gallery
-            @gallery = Gallery.where( :id => params[:id] ).first
+            @gallery = Gallery.where(:id => params[:id]).first
             @gallery_images = @gallery.gallery_images.order("position ASC")
           end
 

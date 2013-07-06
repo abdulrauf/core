@@ -61,7 +61,7 @@ module Gluttonberg
         private
 
           def find_locale
-            @locale = Locale.where(:id => params[:id]).first
+            @locale = Locale.where(:id  => params[:id]).first
             raise ActiveRecord::RecordNotFound  unless @locale
           end
 

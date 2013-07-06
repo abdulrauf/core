@@ -36,8 +36,7 @@ class Gluttonberg::Public::BaseController < ActionController::Base
           if env['gluttonberg.page'].blank?
             redirect_to restrict_site_access_path(:return_url => request.url)
           else
-            default_localization = Gluttonberg::PageLocalization.where(:page_id => env['gluttonberg.page'].id , :locale_id => Gluttonberg::Locale.first_default.id).first
-            redirect_to restrict_site_access_path(:return_url => default_localization.public_path)
+            redirect_to restrict_site_access_path(:return_url => env['gluttonberg.page'].current_localization.public_path)
           end
         end
       end
@@ -103,6 +102,12 @@ class Gluttonberg::Public::BaseController < ActionController::Base
 
     def is_members_enabled
       unless Gluttonberg::Member.enable_members == true
+        raise ActiveRecord::RecordNotFound
+      end
+    end
+
+    def is_blog_enabled
+      unless Gluttonberg::Comment.table_exists? == true
         raise ActiveRecord::RecordNotFound
       end
     end

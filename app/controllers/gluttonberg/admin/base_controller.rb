@@ -3,7 +3,6 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
    before_filter :require_user
    before_filter :require_backend_access
 
-
    if Rails.env == "production"
      rescue_from ActionView::MissingTemplate, :with => :not_found
      rescue_from ActiveRecord::RecordNotFound, :with => :not_found
@@ -17,7 +16,6 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
 
 
   protected
-
 
 
     # this method is used by sorter on asset listing by category and by collection
@@ -60,7 +58,7 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
         @options[:title]    = "Sorry you cannot delete this record!"
         @options[:message]  ||= "It is been used by some other records."
       end
-      render :template => "gluttonberg/admin/shared/delete", :layout => false
+      render :template => "gluttonberg/admin/shared/delete", :layout => "/layouts/bare"
     end
 
     # This is to be called from within a controller — i.e. the publish/unpublish action —
@@ -78,7 +76,7 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
         @options[:title]    = "Sorry you cannot #{@name.capitalize} this record!"
         @options[:message]  ||= "It's parent record is not #{@name.capitalize}."
       end
-      render :template => "shared/generic", :layout => false
+      render :template => "shared/generic", :layout => "/layouts/bare"
 
     end
 
@@ -101,7 +99,7 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
           ids = params[:localization].split("-")
           {:locale => ids[0]}
         else
-          locale = Gluttonberg::Locale.where(:default => true).first
+          locale = Gluttonberg::Locale.first_default
           # Inject the ids into the params so our form fields behave
           params[:localization] = "#{locale.id}"
           {:locale => locale.id}
@@ -130,8 +128,6 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
       true
     end
 
-
-
     def require_backend_access
       return false unless require_user
       unless current_user.have_backend_access?
@@ -141,7 +137,6 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
         return false
       end
     end
-
 
     def require_super_admin_user
       return false unless require_user
@@ -154,6 +149,12 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
       end
     end
 
+    def is_blog_enabled
+      unless Gluttonberg::Comment.table_exists? == true
+        raise CanCan::AccessDenied
+      end
+    end
+
     def store_location
       session[:return_to] = request.url
     end
@@ -162,7 +163,6 @@ class Gluttonberg::Admin::BaseController < ActionController::Base
       redirect_to(session[:return_to] || default)
       session[:return_to] = nil
     end
-
 
     # Exception handlers
     def not_found

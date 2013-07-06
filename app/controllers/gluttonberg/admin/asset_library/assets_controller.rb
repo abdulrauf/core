@@ -20,23 +20,17 @@ module Gluttonberg
 
         def search
           unless params[:asset_query].blank?
-            command = "like"
-            if ActiveRecord::Base.configurations[Rails.env]["adapter"] == "postgresql"
-              command = "ilike"
-            end
-            query = clean_public_query(params[:asset_query])
-            @search_assets = Asset.where(["name #{command} ? OR description LIKE ? ", "%#{query}%" , "%#{query}%" ] ).order("name ASC")
+            @search_assets = Asset.search_assets(clean_public_query(params[:asset_query]))
             respond_to do |format|
-              format.html{
-                page = params[:page].blank? ? 1 : params[:page].to_i
-                @search_assets = @search_assets.paginate(:per_page => 15 , :page => page )
-              }
-              format.json {
-
-              }
+              format.html do
+                @search_assets = @search_assets.paginate({
+                  :per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items"),
+                  :page => params[:page]
+                })
+              end
+              format.json
             end
           end
-
         end
 
         # if filter param is provided then it will only show filtered type
@@ -86,8 +80,7 @@ module Gluttonberg
               @assets = req_category.assets.includes(:asset_type)
             end
           end # category#all
-          page = params[:page].blank? ? 1 : params[:page].to_i
-          @assets = @assets.paginate( :per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items") , :page => page ).order(get_order)
+          @assets = @assets.paginate( :per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items") , :page => params[:page] ).order(get_order)
         end
 
 
@@ -99,7 +92,7 @@ module Gluttonberg
           @assets.each do |asset|
             asset.destroy
           end
-          redirect_to "/admin/browse/all/page/1"
+          redirect_to admin_asset_category_path(:category => 'all' , :page => 1 )
         end
 
         # add assets from zip folder
@@ -152,7 +145,7 @@ module Gluttonberg
 
         # delete asset
         def delete
-          return_url = "/admin/browse/all/page/1"
+          return_url = admin_asset_category_path(:category => 'all' , :page => 1 )
           return_url =  request.referrer unless request.referrer.blank?
           display_delete_confirmation(
             :title      => "Delete “#{@asset.name}” asset?",
@@ -202,7 +195,7 @@ module Gluttonberg
           if !params[:return_url].blank? && !params[:return_url].include?(admin_asset_path(params[:id]))
             redirect_to params[:return_url]
           else
-            redirect_to "/admin/browse/all/page/1"
+            redirect_to admin_asset_category_path(:category => 'all' , :page => 1 )
           end
         end
 
@@ -221,11 +214,17 @@ module Gluttonberg
             @asset.name = @asset.file_name.humanize
           end
           if @asset.save
+            json = {
+              "asset_id" => @asset.id,
+              "title" => @asset.name,
+              "category" => @asset.category,
+              "url" => @asset.url
+            }
             if @asset.category == "image"
-              render :text => { "asset_id" => @asset.id , "url" => @asset.thumb_small_url , "jwysiwyg_image" => @asset.url_for(:jwysiwyg_image) , "title" => @asset.name , "category" => @asset.category }.to_json.to_s
-            else
-              render :text => { "asset_id" => @asset.id , "url" => @asset.url , "jwysiwyg_image" => @asset.url_for(:jwysiwyg_image) , "title" => @asset.name , "category" => @asset.category }.to_json.to_s
+              json["url"] = @asset.thumb_small_url
+              json["jwysiwyg_image"] = @asset.url_for(:jwysiwyg_image)
             end
+            render :text  => json.to_json.to_s
           else
             prepare_to_edit
             render :new
@@ -233,95 +232,68 @@ module Gluttonberg
         end
 
         private
-          def find_asset
-            @asset = Asset.where(:id => params[:id] ).first
-            raise ActiveRecord::RecordNotFound  if @asset.blank?
-          end
+            def find_asset
+              @asset = Asset.where(:id => params[:id]).first
+              raise ActiveRecord::RecordNotFound  if @asset.blank?
+            end
 
-          def find_categories
-            @categories = AssetCategory.all
-          end
+            def find_categories
+              @categories = AssetCategory.all
+            end
 
-          def prepare_to_edit
-            @collections = AssetCollection.order("name")
-          end
+            def prepare_to_edit
+              @collections = AssetCollection.order("name")
+            end
 
-          def authorize_user
-            authorize! :manage, Gluttonberg::Asset
-          end
+            def authorize_user
+              authorize! :manage, Gluttonberg::Asset
+            end
 
-          def authorize_user_for_destroy
-            authorize! :destroy, Gluttonberg::Asset
-          end
+            def authorize_user_for_destroy
+              authorize! :destroy, Gluttonberg::Asset
+            end
 
-          # if new collection is provided it will create the object for that
-          # then it will add new collection id into other existing collection ids
-          def process_new_collection_and_merge(params)
-            params[:asset][:asset_collection_ids] = "" if params[:asset][:asset_collection_ids].blank? || params[:asset][:asset_collection_ids] == "null"  || params[:asset][:asset_collection_ids] == "undefined"
-            params[:asset][:asset_collection_ids] = params[:asset][:asset_collection_ids].split(",") if params[:asset][:asset_collection_ids].kind_of?(String)
+            # if new collection is provided it will create the object for that
+            # then it will add new collection id into other existing collection ids
+            def process_new_collection_and_merge(params)
+              params[:asset][:asset_collection_ids] = "" if params[:asset][:asset_collection_ids].blank? || params[:asset][:asset_collection_ids] == "null"  || params[:asset][:asset_collection_ids] == "undefined"
+              params[:asset][:asset_collection_ids] = params[:asset][:asset_collection_ids].split(",") if params[:asset][:asset_collection_ids].kind_of?(String)
 
-            the_collection = find_or_create_asset_collection_from_hash(params["new_collection"])
-             unless the_collection.blank?
-               params[:asset][:asset_collection_ids] = params[:asset][:asset_collection_ids] || []
-               unless params[:asset][:asset_collection_ids].include?(the_collection.id.to_s)
-                 params[:asset][:asset_collection_ids] <<  the_collection.id
+              the_collection = find_or_create_asset_collection_from_hash(params["new_collection"])
+               unless the_collection.blank?
+                 params[:asset][:asset_collection_ids] = params[:asset][:asset_collection_ids] || []
+                 unless params[:asset][:asset_collection_ids].include?(the_collection.id.to_s)
+                   params[:asset][:asset_collection_ids] <<  the_collection.id
+                 end
                end
-             end
-          end
+            end
 
-           # Returns an AssetCollection (either by finding a matching existing one or creating a new one)
-           # requires a hash with the following keys
-           #   do_new_collection: If not present the method returns nil and does nothing
-           #   new_collection_name: The name for the collection to return.
-           def find_or_create_asset_collection_from_hash(param_hash)
-             # Create new AssetCollection if requested by the user
-             if param_hash
-                 if param_hash.has_key?('new_collection_name')
-                   unless param_hash['new_collection_name'].blank?
-                     #create options for first or create
-                     options = {:name => param_hash['new_collection_name'] }
+             # Returns an AssetCollection (either by finding a matching existing one or creating a new one)
+             # requires a hash with the following keys
+             #   do_new_collection: If not present the method returns nil and does nothing
+             #   new_collection_name: The name for the collection to return.
+             def find_or_create_asset_collection_from_hash(param_hash)
+               # Create new AssetCollection if requested by the user
+               if param_hash
+                   if param_hash.has_key?('new_collection_name')
+                     unless param_hash['new_collection_name'].blank?
+                       #create options for first or create
+                       options = {:name => param_hash['new_collection_name'] }
 
-                     # Retireve the existing AssetCollection if it matches or create a new one
-                     the_collection = AssetCollection.where(options).first
-                     unless the_collection
-                       the_collection = AssetCollection.new(options)
-                       the_collection.user_id = current_user.id
-                       the_collection.save
-                     end
+                       # Retireve the existing AssetCollection if it matches or create a new one
+                       the_collection = AssetCollection.where(options).first
+                       unless the_collection
+                         the_collection = AssetCollection.new(options)
+                         the_collection.user_id = current_user.id
+                         the_collection.save
+                       end
 
-                     the_collection
-                   end # new_collection_name value
-                 end # new_collection_name key
-               end # param_hash
-           end # find_or_create_asset_collection_from_hash
+                       the_collection
+                     end # new_collection_name value
+                   end # new_collection_name key
+                 end # param_hash
+             end # find_or_create_asset_collection_from_hash
       end # controller
     end
   end
-end
-# i made this class for providing extra methods in file class.
-# I am using it for making assets from zip folder.
-# keep in mind when we upload asset from browser, browser injects three extra attributes (that are given in MyFile class)
-# but we are adding assets from file, i am injecting extra attributes manually. because asset library assumes that file has three extra attributes
-class MyFile < File
-  attr_accessor :original_filename , :content_type , :size
-
-  def self.init(filename , entry)
-    file = MyFile.new(filename)
-    file.original_filename = filename
-    file.content_type = find_content_type(filename)
-    file.size = entry.size
-    file
-  end
-
-  def tempfile
-    self
-  end
-  def self.find_content_type(filename)
-    begin
-     MIME::Types.type_for(filename).first.content_type
-    rescue
-      ""
-    end
-  end
-
 end

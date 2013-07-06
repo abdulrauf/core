@@ -27,6 +27,7 @@ module Gluttonberg
   require 'gluttonberg/middleware'
   require 'gluttonberg/can_flag'
   require 'gluttonberg/record_history'
+  require 'gluttonberg/gb_file'
 
   # These should likely move into one of the initializers inside of the
   # engine config. This will ensure they only run after Rails and the app
@@ -37,6 +38,16 @@ module Gluttonberg
   # Check to see if Gluttonberg is configured to be localized.
   def self.localized?
     Engine.config.localize
+  end
+
+  def self.dbms_name
+    if ActiveRecord::Base.configurations[Rails.env]
+      ActiveRecord::Base.configurations[Rails.env]["adapter"]
+    end
+  end
+
+  def self.like_or_ilike
+    Gluttonberg.dbms_name == "postgresql" ? "ilike" : "like"
   end
 
   require 'jeditable-rails'

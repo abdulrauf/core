@@ -68,7 +68,7 @@ module Gluttonberg
         protected
 
           def find_stylesheet
-            @stylesheet = Stylesheet.where(:id => params[:id]).first
+            @stylesheet = Stylesheet.where(:id  => params[:id]).first
           end
 
           def authorize_user
