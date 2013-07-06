@@ -71,7 +71,8 @@ namespace :gluttonberg do
     begin
       line = HighLine.new
       line.say("<%= color('Moving files into place...', YELLOW) %>")
-      FileUtils.cp Gluttonberg::Engine.root + "installer/delayed_job_script", Rails.root + "script/delayed_job"
+      script_folder_name = (Rails::VERSION::MAJOR == 3 ? "script" : "bin")
+      FileUtils.cp Gluttonberg::Engine.root + "installer/delayed_job_script", Rails.root + "#{script_folder_name}/delayed_job"
       FileUtils.mkdir_p(File.join(Rails.root, "db", "migrate"))
       FileUtils.mkdir_p(File.join(Rails.root, "app", "views", "pages"))
       FileUtils.cp(File.join(Gluttonberg::Engine.root, "installer", "gluttonberg_migration.rb"), File.join(Rails.root, "db", "migrate", "#{Time.now.utc.strftime("%Y%m%d%H%M%S")}_gluttonberg_migration.rb"))

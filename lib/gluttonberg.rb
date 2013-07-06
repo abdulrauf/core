@@ -8,7 +8,7 @@ module Gluttonberg
   require 'zip/zip'
   require 'acts_as_tree'
   require 'acts_as_versioned'
-  require 'delayed_job'
+  #require 'delayed_job'
   require 'paperclip'
   require 'cancan'
   require 'texticle'
