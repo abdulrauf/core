@@ -27,7 +27,7 @@ module Gluttonberg
     # User model always concat following three roles
     # ["super_admin" , "admin" , "contributor"]
     config.user_roles = []
-    config.password_pattern = /^(?=.*\d)(?=.*[a-zA-Z])(?!.*[^\w\S\s]).{6,}$/
+    config.password_pattern = /(?=.*\d)(?=.*[a-zA-Z])(?!.*[^\w\S\s]).{6,}/
     config.password_validation_message = "must be a minimum of 6 characters in length, contain at least 1 letter and at least 1 number"
 
     config.honeypot_field_name = "our_newly_weekly_series"

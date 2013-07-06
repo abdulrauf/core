@@ -142,7 +142,7 @@ Rails.application.routes.draw do
       get "/articles/tag/:tag" => "articles#tag" , :as => :articles_by_tag
       get "/articles/unsubscribe/:reference" => "articles#unsubscribe" , :as => :unsubscribe_article_comments
       get "(/:locale)/member/login" => "member_sessions#new" , :as => :member_login
-      post "(/:locale)/member/login" => "member_sessions#create"  , :as => :member_login
+      post "(/:locale)/member/login" => "member_sessions#create"  , :as => :post_member_login
       get "(/:locale)/member/logout" => "member_sessions#destroy", :as => :member_logout
       get "(/:locale)/member/confirm/:key" => "members#confirm", :as => :member_confirmation
       get "(/:locale)/member/resend_confirmation" => "members#resend_confirmation", :as => :member_resend_confirmation

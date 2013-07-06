@@ -19,6 +19,8 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'protected_attributes'
   s.add_dependency 'rails-observers'
+  s.add_dependency 'haml', '~> 4'
+  s.add_dependency 'sass', '~> 3'
   #s.add_dependency 'authlogic', "3.3.0"
   s.add_dependency 'will_paginate' , '3.0.4'
   s.add_dependency 'rubyzip', '0.9.9'
