@@ -1,13 +1,10 @@
-current_directory = Pathname(__FILE__).dirname.expand_path
-require File.join(current_directory, "admin", "form_builder")
-
 module Gluttonberg
     # Helpers specific to the administration interface. The majority are
     # related to forms, but there are other short cuts for things like navigation.
     module Admin
-      include Messages
-      include Form
-      include Assets
+      include Gluttonberg::Admin::Messages
+      include Gluttonberg::Admin::Form
+      include Gluttonberg::Admin::Assets
 
       # Returns a link for sorting assets in the library
       def sorter_link(name, param, url)
@@ -75,7 +72,7 @@ module Gluttonberg
           where context = '#{tag_type}'
         })
         @themes = @themes.collect{|theme| theme.name}
-        @themes.joins(",")
+        @themes.blank? ? "" : @themes.joins(",")
       end
 
       def date_format(date_time)

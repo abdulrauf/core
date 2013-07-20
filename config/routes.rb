@@ -5,10 +5,6 @@ Rails.application.routes.draw do
   scope :module => 'gluttonberg' do
     namespace :admin do
       root :to => "main#index"
-
-      # Help
-      get "/help/:module_and_controller/:page" => "help#show", :module_and_controller => %r{\S+} , :as => :help
-
       scope :module => 'content' do
         get "/flagged_contents" => "flag#index" , :as => :flagged_contents
         get '/flagged_contents/moderation/:id/:moderation' => "flag#moderation", :as => :flagged_contents_moderation
@@ -100,12 +96,12 @@ Rails.application.routes.draw do
         end
         get "library" => "assets#index" , :as => :library
         get "search_assets" => "assets#search" , :as => :library_search
-        post "add_asset_using_ajax"  => "assets#ajax_new" , :as => :add_asset_using_ajax#, :via => [:post]
-        get "add_assets_in_bulk"  => "assets#add_assets_in_bulk" , :as => :add_assets_in_bulk
-        post "create_assets_in_bulk"  => "assets#create_assets_in_bulk" , :as => :create_assets_in_bulk
-        post "destroy_assets_in_bulk"  => "assets#destroy_assets_in_bulk" , :as => :destroy_assets_in_bulk
+        post "add_asset_using_ajax"  => "assets_ajax#create" , :as => :add_asset_using_ajax
+        get "add_assets_in_bulk"  => "assets_bulk#add_assets_in_bulk" , :as => :add_assets_in_bulk
+        post "create_assets_in_bulk"  => "assets_bulk#create_assets_in_bulk" , :as => :create_assets_in_bulk
+        post "destroy_assets_in_bulk"  => "assets_bulk#destroy_assets_in_bulk" , :as => :destroy_assets_in_bulk
         get "browser"  => "assets#browser" , :as => :asset_browser
-        get "browser-collection/:id"  => "assets#browser_collection" , :as => :asset_browser_collection
+        get "browser-collection/:id"  => "assets_ajax#browser_collection" , :as => :asset_browser_collection
         get "assets/:category/page/:page"  => "assets#category" , :as => :asset_category
         get "collections/:id/page/:page"  => "collections#show" , :as => :asset_collection
         resources :collections  do

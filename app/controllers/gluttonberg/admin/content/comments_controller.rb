@@ -48,23 +48,23 @@ module Gluttonberg
 
 
         def pending
-          @comments = Comment.all_pending.order("created_at DESC").paginate(:per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items"), :page => params[:page] , :order => "created_at DESC")
-          render :template => "/gluttonberg/admin/content/comments/index"
+          @comments = ordering_and_pagination(Comment.all_pending)
+          render_comments_list
         end
 
         def approved
-          @comments = Comment.all_approved.order("created_at DESC").paginate(:per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items"), :page => params[:page] , :order => "created_at DESC")
-          render :template => "/gluttonberg/admin/content/comments/index"
+          @comments = ordering_and_pagination(Comment.all_approved)
+          render_comments_list
         end
 
         def rejected
-          @comments = Comment.all_rejected.order("created_at DESC").paginate(:per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items"), :page => params[:page] , :order => "created_at DESC")
-          render :template => "/gluttonberg/admin/content/comments/index"
+          @comments = ordering_and_pagination(Comment.all_rejected)
+          render_comments_list
         end
 
         def spam
-          @comments = Comment.all_spam.order("created_at DESC").paginate(:per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items"), :page => params[:page] , :order => "created_at DESC")
-          render :template => "/gluttonberg/admin/content/comments/index"
+          @comments = ordering_and_pagination(Comment.all_spam)
+          render_comments_list
         end
 
         def spam_detection_for_all_pending
@@ -74,30 +74,7 @@ module Gluttonberg
 
         def block_comment_author
           @comment = Comment.where(:id => params[:id]).first
-
-          author_string = ""
-          unless @comment.author_name.blank? || @comment.author_name == "NULL" || @comment.author_name.length < 3
-            author_string += @comment.author_name
-          end
-          unless @comment.author_email.blank? || @comment.author_email == "NULL" || @comment.author_email.length < 3
-            author_string += ", " unless author_string.blank?
-            author_string += @comment.author_email
-          end
-          unless @comment.author_website.blank? || @comment.author_website == "NULL" || @comment.author_website.length < 3
-            author_string += ", " unless author_string.blank?
-            author_string += @comment.author_website
-          end
-          unless author_string.blank?
-            author_string
-            gb_blacklist_settings = Gluttonberg::Setting.get_setting("comment_blacklist")
-            if gb_blacklist_settings.blank?
-              gb_blacklist_settings = author_string
-            else
-              gb_blacklist_settings = gb_blacklist_settings + ", " + author_string
-            end
-            Gluttonberg::Setting.update_settings("comment_blacklist" => gb_blacklist_settings)
-            Comment.spam_detection_for_all
-          end
+          @comment.black_list_author
           redirect_to admin_pending_comments_path
         end
 
@@ -123,6 +100,17 @@ module Gluttonberg
 
           def authorize_user_for_moderation
             authorize! :moderate, Gluttonberg::Comment
+          end
+
+          def ordering_and_pagination(comments)
+            comments.order("created_at DESC").paginate({
+              :per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items"),
+              :page => params[:page]
+            })
+          end
+
+          def render_comments_list
+            render :template => "/gluttonberg/admin/content/comments/index"
           end
       end
     end
