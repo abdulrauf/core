@@ -56,7 +56,7 @@ module Gluttonberg
         :bio => "BIO"
       }
       config.model_mixins = {}
-      config.password_pattern = /^(?=.*\d)(?=.*[a-zA-Z])(?!.*[^\w\S\s]).{6,}$/
+      config.password_pattern = /\A(?=.*\d)(?=.*[a-zA-Z])(?!.*[^\w\S\s]).{6,}\z/
       config.password_validation_message = "must be a minimum of 6 characters in length, contain at least 1 letter and at least 1 number"
       config.multisite = false
     end

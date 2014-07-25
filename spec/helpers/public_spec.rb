@@ -75,7 +75,7 @@ module Gluttonberg
       Rails.configuration.cms_based_public_css = true
       Rails.configuration.cms_based_public_css.should eql(true)
 
-      helper.cms_managed_stylesheets_link_tag.should eql("<link href=\"/stylesheets/style.css?1.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" /><link href=\"/stylesheets/player.css?1.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />\n")
+      helper.cms_managed_stylesheets_link_tag.should eql("<link href=\"/stylesheets/style.css?1\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" /><link href=\"/stylesheets/player.css?1\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />\n")
 
       Rails.configuration.cms_based_public_css = false
       Rails.configuration.cms_based_public_css.should eql(false)

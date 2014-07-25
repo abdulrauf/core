@@ -12,7 +12,7 @@ module Gluttonberg
     require 'acts_as_versioned'
     require 'paperclip'
     require 'cancan'
-    require 'texticle'
+    require 'textacular'
     require 'audio_job'
     require 'photo_job'
     require 'aws'
@@ -39,6 +39,11 @@ module Gluttonberg
     require 'gluttonberg/gb_file'
     require 'gluttonberg/random_string_generator'
     require 'gluttonberg/helpers/form_builder'
+  end
+
+  def self.rails4_dependencies
+    require 'rails-observers'
+    require 'protected_attributes'
   end
 
   # Check to see if Gluttonberg is configured to be localized.
@@ -71,6 +76,7 @@ module Gluttonberg
 
   self.require_dependencies
   self.require_gluttonberg_components
+  self.rails4_dependencies if defined?(Rails) && Rails::VERSION::MAJOR >= 4
   DragTree.setup
   RecordHistory.setup
 end

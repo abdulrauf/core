@@ -14,7 +14,7 @@ module Gluttonberg
       def google_analytics_js_tag
         code = Gluttonberg::Setting.get_setting("google_analytics", current_site_config_name)
         unless code.blank?
-          javascript_tag do
+          javascript_tag(type: 'text/javascript') do
             %{
               var _gaq = _gaq || [];
               _gaq.push(['_setAccount', '#{code}']);

@@ -58,7 +58,7 @@ module Gluttonberg
         # Returns all the matching models with the specificed localization loaded.
         def all_with_localization(opts)
           page_localization_id = opts.delete(:page_localization_id)
-          results = all(opts)
+          results = where(opts).all
           results.each { |r| r.load_localization(page_localization_id) }
           results
         end
@@ -155,7 +155,7 @@ module Gluttonberg
         if localized?
           localization_id = id_or_model.is_a?(Numeric) ? id_or_model : id_or_model.id
           conditions = {:page_localization_id => localization_id, :"#{self.class.content_type}_id" => id}
-          @current_localization = localizations.find(:first , :conditions => conditions)
+          @current_localization = localizations.where(conditions).first
         end
       end
     end

@@ -31,7 +31,7 @@ module Gluttonberg
 
 
       def enable_slug_management_on(html_class)
-        javascript_tag("enable_slug_management_on('#{html_class}')" )
+        javascript_tag("enable_slug_management_on('#{html_class}')", type: 'text/javascript' )
       end
 
       # generate javascript code to enable tinymce on it.
@@ -40,7 +40,7 @@ module Gluttonberg
           link_count = Page.published.count
           link_count += Gluttonberg::Blog::Article.published.count if Gluttonberg.constants.include?(:Blog)
           content = "enableRedactor('.#{html_class}', #{link_count}); \n"
-          javascript_tag(content)
+          javascript_tag(content, type: 'text/javascript')
         end
       end
 

@@ -9,7 +9,7 @@ module Gluttonberg
     # Included mixins which are registered by host app for extending functionality
     MixinManager.load_mixins(self)
 
-    has_many :gallery_images , :order => "position ASC", :dependent => :destroy
+    has_many :gallery_images, -> { order('position ASC') }, :dependent => :destroy
     belongs_to :fb_icon , :class_name => "Gluttonberg::Asset" , :foreign_key => "fb_icon_id"
     belongs_to :user
 

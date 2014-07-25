@@ -114,7 +114,7 @@ module Gluttonberg
           def set_associations_for_localization_model
             # Associate the model and it’s localization
             has_many  :localizations, :class_name => self.localized_model.name.to_s, :foreign_key => self.parent_key, :dependent => :destroy
-            has_one  :default_localization, :class_name => self.localized_model.name.to_s, :foreign_key => self.parent_key, :conditions =>  proc { ["locale_id = ?", Locale.first_default.id] }
+            has_one  :default_localization, -> { where(["locale_id = ?", Locale.first_default.id]) }, :class_name => self.localized_model.name.to_s, :foreign_key => self.parent_key
             self.localized_model.belongs_to(:parent, :class_name => self.name, :foreign_key => self.parent_key)
           end
 

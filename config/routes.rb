@@ -10,7 +10,7 @@ Rails.application.routes.draw do
 
       scope :module => 'content' do
         controller :auto_save do
-          match "/autosave/:model_name/:id" => :create , :as => :autosave
+          match "/autosave/:model_name/:id" => :create , :as => :autosave, via: :all
           get "/remove_autosaved_version/:model_name/:id" => :destroy , :as => :remove_autosaved_version
           get "/retreive_changes/:model_name/:id" => :retreive_changes , :as => :retreive_changes
         end
@@ -28,7 +28,7 @@ Rails.application.routes.draw do
           collection do
             post 'move' =>  :move_node, :as => :move
             post 'update_home', :as =>  :update_home
-            match 'import'
+            match 'import', via: :all
             get 'export'
             get 'collapse_all'
             get 'expand_all'

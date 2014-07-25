@@ -22,7 +22,7 @@ module Gluttonberg
             html << stylesheet.css_prefix
             html << "\n"
           end
-          html << stylesheet_link_tag( stylesheets_path(stylesheet.slug) +".css?#{stylesheet.version}" )
+          html << stylesheet_link_tag( stylesheets_path(stylesheet.slug) +".css?#{stylesheet.version}", type: 'text/css' )
           unless stylesheet.css_postfix.blank?
             html << "\n"
             html << stylesheet.css_postfix

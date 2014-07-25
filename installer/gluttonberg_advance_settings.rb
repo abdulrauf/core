@@ -68,7 +68,7 @@
       # Gluttonberg::MixinManager.register_mixin("Gluttonberg::Member", VendorMixin)
 
     # Password pattern and validation message applies on both members and backend users
-    Rails.configuration.password_pattern = /(?=.*\d)(?=.*[a-zA-Z])(?!.*[^\w\S\s]).{6,}/
+    Rails.configuration.password_pattern = /\A(?=.*\d)(?=.*[a-zA-Z])(?!.*[^\w\S\s]).{6,}\z/  
     Rails.configuration.password_validation_message = "must be a minimum of 6 characters in length, contain at least 1 letter and at least 1 number"
 
   # Multisite Config
