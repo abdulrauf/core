@@ -6,9 +6,7 @@ module Gluttonberg
     end
 
     module ActionController
-      def self.included(base)
-        base.extend(ClassMethods)
-      end
+      extend ActiveSupport::Concern
 
 
       module ClassMethods
@@ -31,6 +29,10 @@ module Gluttonberg
           unless object.blank?
             if object.new_record?
             else
+              if object.respond_to?(:user_id) # record creator user id
+                object.user_id = current_user.id
+                object.save
+              end
               Gluttonberg::Feed.log(current_user, object ,object_title , "created")
             end
           end
@@ -80,12 +82,8 @@ module Gluttonberg
             end
           end
         end
-
       end #ControllerHelperClassMethods
-
-
     end
-
   end #RecordHistory
 end #Gluttonberg
 

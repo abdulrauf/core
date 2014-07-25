@@ -6,12 +6,11 @@ module Gluttonberg
     # 
     # These just defer to the parent class.
     module BlockLocalization
-      def self.included(klass)
-        klass.class_eval do
-          class << self; attr_accessor :content_type, :association_name end
-          
-          belongs_to :page_localization
-        end
+      extend ActiveSupport::Concern
+      included do
+        cattr_accessor :content_type, :association_name
+        belongs_to :page_localization
+        delegate :state, :_publish_status, :state_changed?, :to => :page, :allow_nil => true
       end
       
       def association_name
@@ -23,15 +22,19 @@ module Gluttonberg
       end
       
       def section_name
-        parent.section[:name]
+        parent.section[:name] if parent && parent.section
       end
       
       def section_position
-        parent.section[:position]
+        parent.section[:position] if parent && parent.section
       end
       
       def section_label
         parent.section[:label] unless parent.blank?
+      end
+
+      def page
+        self.page_localization.page
       end
     end
   end

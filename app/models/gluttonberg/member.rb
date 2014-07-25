@@ -2,25 +2,29 @@ module Gluttonberg
   class Member < ActiveRecord::Base
     self.table_name = "gb_members"
 
-    attr_accessible :first_name , :last_name , :email , :password , :password_confirmation , :bio , :image , :image_delete , :term_and_conditions, :group_ids, :groups
+    attr_accessible :first_name , :last_name , :email , :password
+    attr_accessible :password_confirmation , :bio , :image , :image_delete , :term_and_conditions, :group_ids, :groups
+    attr_accessible :return_url
 
     has_and_belongs_to_many :groups, :class_name => "Group" , :join_table => "gb_groups_members"
     has_attached_file :image, :styles => { :profile => ["600x600"], :thumb => ["142x95#"] , :thumb_for_backend => ["100x75#"]}
 
+    # Validate content type
+    validates_attachment_content_type :image, :content_type => /\Aimage/
+    # Validate filename
+    validates_attachment_file_name :image, :matches => [/png\Z/, /jpe?g\Z/]
+
     validates_format_of :password, :with => Rails.configuration.password_pattern , :if => :require_password?, :message => Rails.configuration.password_validation_message
     validates_presence_of :first_name , :email
+    validates :first_name, :last_name, :email, :length => { :maximum => 255 }
 
     before_validation :verify_confirmation_status
 
     attr_accessor :return_url , :term_and_conditions
     attr_accessor :image_delete
 
-    member_mixins = Rails.configuration.member_mixins
-    unless member_mixins.blank?
-      member_mixins.each do |mixin|
-        include mixin
-      end
-    end
+    # Included mixins which are registered by host app for extending functionality
+    MixinManager.load_mixins(self)
 
     include Membership::Import
     include Membership::Export
@@ -30,10 +34,11 @@ module Gluttonberg
     acts_as_authentic do |c|
       c.session_class = MemberSession
       c.login_field = "email"
+      c.crypto_provider = Authlogic::CryptoProviders::Sha512
     end
 
     def full_name
-      "#{self.first_name} #{self.last_name}"
+      "#{self.first_name} #{self.last_name}".strip
     end
 
     def deliver_password_reset_instructions!(current_localization_slug = "")
@@ -54,11 +59,7 @@ module Gluttonberg
     end
 
     def self.enable_members
-      if Rails.configuration.enable_members == true || Rails.configuration.enable_members.kind_of?(Hash)
-        true
-      else
-        false
-      end
+      Rails.configuration.enable_members == true || Rails.configuration.enable_members.kind_of?(Hash)
     end
 
     def self.does_email_verification_required

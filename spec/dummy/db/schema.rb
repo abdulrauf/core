@@ -121,8 +121,14 @@ ActiveRecord::Schema.define(:version => 20130403011606) do
     t.string   "state"
     t.datetime "published_at"
     t.boolean  "collection_imported", :default => false
+    t.string :seo_title , :limit => 255
+    t.text :seo_keywords
+    t.text :seo_description
+    t.integer :fb_icon_id
+    t.string :previous_path
     t.datetime "created_at",                             :null => false
     t.datetime "updated_at",                             :null => false
+
   end
 
   create_table "gb_gallery_images", :force => true do |t|
@@ -131,6 +137,10 @@ ActiveRecord::Schema.define(:version => 20130403011606) do
     t.integer  "position",   :null => false
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+    t.text     "caption"
+    t.text     "credits"
+    t.string   "artist_name"
+    t.string   "link"
   end
 
   create_table "gb_groups", :force => true do |t|
@@ -150,6 +160,21 @@ ActiveRecord::Schema.define(:version => 20130403011606) do
   create_table "gb_groups_pages", :id => false, :force => true do |t|
     t.integer "page_id",  :null => false
     t.integer "group_id", :null => false
+  end
+
+  create_table :gb_textarea_contents do |t|
+    t.boolean :orphaned, :default => false
+    t.string :section_name, :limit => 50
+    t.integer :page_id
+    t.timestamps
+  end
+
+  create_table :gb_textarea_content_localizations do |t|
+    t.text :text
+    t.integer :textarea_content_id
+    t.integer :page_localization_id
+    t.integer :version
+    t.timestamps
   end
 
   create_table "gb_html_content_localizations", :force => true do |t|
@@ -178,6 +203,16 @@ ActiveRecord::Schema.define(:version => 20130403011606) do
     t.integer  "page_id"
     t.integer  "version"
   end
+
+  create_table :gb_select_contents do |t|
+    t.boolean :orphaned, :default => false
+    t.string :section_name, :limit => 50
+    t.string :text
+    t.integer :page_id
+    t.integer :version
+    t.timestamps
+  end
+
 
   create_table "gb_locales", :force => true do |t|
     t.string  "name",      :limit => 70,                    :null => false
@@ -238,6 +273,7 @@ ActiveRecord::Schema.define(:version => 20130403011606) do
     t.string   "state"
     t.boolean  "hide_in_nav"
     t.datetime "published_at"
+    t.integer  "children_count", :default => 0
   end
 
   create_table "gb_plain_text_content_localizations", :force => true do |t|
@@ -264,6 +300,7 @@ ActiveRecord::Schema.define(:version => 20130403011606) do
     t.integer "row"
     t.boolean "delete_able",               :default => true
     t.boolean "enabled",                   :default => true
+    t.string  "site"
     t.text    "help"
     t.text    "values_list"
   end
@@ -296,6 +333,10 @@ ActiveRecord::Schema.define(:version => 20130403011606) do
     t.integer  "position"
     t.datetime "created_at",                         :null => false
     t.datetime "updated_at",                         :null => false
+  end
+
+  create_table "gb_versions", :force => true do |t|
+    t.float "version_number", :null => false
   end
 
   create_table "html_content_localization_versions", :force => true do |t|
@@ -363,20 +404,23 @@ ActiveRecord::Schema.define(:version => 20130403011606) do
     t.string "slug"
   end
 
-  create_table :staff_profiles do |t|
+
+  create_table :staff_profiles, :force => true do |t|
     t.string :name
     t.integer :face_id
+    t.decimal :package, :precision => 6, :scale => 3
 
     t.string :slug
     t.string :previous_slug
     t.integer :position
     t.column :state , :string #use for publishing
     t.datetime :published_at
+    t.integer :user_id
 
     t.timestamps
   end
 
-  create_table :staff_profile_localizations do |t|
+  create_table :staff_profile_localizations, :force => true do |t|
     t.text :bio
     t.integer :handwritting_id
 
@@ -386,6 +430,44 @@ ActiveRecord::Schema.define(:version => 20130403011606) do
     t.integer :fb_icon_id
     t.integer :parent_id
     t.integer :locale_id
+    t.timestamps
+  end
+
+  begin
+    Gluttonberg::TextareaContentLocalization.create_versioned_table
+  rescue => e
+    puts e
+  end
+
+  begin
+    Gluttonberg::SelectContent.create_versioned_table
+  rescue => e
+    puts e
+  end
+
+  create_table :gb_collapsed_pages do |t|
+    t.integer :page_id
+    t.integer :user_id
+  end
+
+  create_table :gb_auto_save_versions do |t|
+    t.integer :auto_save_able_id
+    t.string :auto_save_able_type
+    t.text :data
+    t.timestamps
+  end
+
+  create_table :gb_authorizations do |t|
+    t.string :authorizable_type
+    t.integer :authorizable_id
+    t.integer :user_id
+    t.boolean :allow
+    t.timestamps
+  end
+  create_table :gb_embeds do |t|
+    t.string :title
+    t.string :shortcode
+    t.text :body
     t.timestamps
   end
 

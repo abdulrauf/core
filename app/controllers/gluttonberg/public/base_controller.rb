@@ -1,48 +1,49 @@
-# This Class is intended to be used to integrate an arbitrary controller into
-# the Gluttonberg front end. It provides access to the locale/dialect processing,
-# templating, page collections for generating navigations and injects a bunch of
-# other useful helpers.
-
 module Gluttonberg
+  # This Class is intended to be used to integrate an arbitrary controller into
+  # the Gluttonberg front end. It provides access to the locale/dialect processing,
+  # templating, page collections for generating navigations and injects a bunch of
+  # other useful helpers.
   module Public
     class BaseController < Gluttonberg::BaseController
-        # The included hook is used to create a bunch of class-ivars, which are used to
-        # store various configuration options.
-        #
-        # It also installs before and after hooks that have been declared elsewhere
-        # in this module.
+      # The included hook is used to create a bunch of class-ivars, which are used to
+      # store various configuration options.
+      #
+      # It also installs before and after hooks that have been declared elsewhere
+      # in this module.
 
-        attr_accessor :page, :locale
-        before_filter :retrieve_locale , :rails_locale
+      attr_accessor :page, :locale
+      before_filter :retrieve_locale , :rails_locale
 
-        layout "public"
+      layout "public"
 
-        helper_method :current_user_session, :current_user , :current_member_session , :current_member , :current_localization_slug
-        before_filter :verify_site_access
+      helper_method :current_user_session, :current_user , :current_member_session , :current_member , :current_localization_slug
+      before_filter :verify_site_access
 
       protected
 
+        # this makes sure that site is open for public otherwise it checks for 
+        # that admin user is logged in so that he/she can preview site
         def verify_site_access
           unless action_name == "restrict_site_access"
-            setting = Gluttonberg::Setting.get_setting("restrict_site_access")
+            setting = Gluttonberg::Setting.get_setting("restrict_site_access", current_site_config_name)
             if !setting.blank? && cookies[:restrict_site_access] != "allowed"
-              if env['gluttonberg.page'].blank?
-                return_url = {:return_url => request.url}
+              if env['GLUTTONBERG.PAGE'].blank?
+                return_url = request.url
               else
-                return_url = {:return_url => env['gluttonberg.page'].current_localization.public_path}
+                return_url = env['GLUTTONBERG.PAGE'].current_localization.public_path
               end
               redirect_to restrict_site_access_path(:return_url => return_url)
             end
           end
         end
 
+        # slug for current locale otherwise it sends default locale's slug
         def rails_locale
-          if env['gluttonberg.locale'].blank?
+          if env['GLUTTONBERG.LOCALE'].blank?
             I18n.locale = I18n.default_locale
           else
-            I18n.locale = env['gluttonberg.locale'].slug || I18n.default_locale
+            I18n.locale = env['GLUTTONBERG.LOCALE'].slug || I18n.default_locale
           end
-
         end
 
         def current_member_session
@@ -65,11 +66,11 @@ module Gluttonberg
           if current_member.blank?
             store_location
             flash[:error] = "You must be logged in to access this page"
-            redirect_to member_login_url
+            redirect_to member_login_path
             return false
           elsif current_member.profile_confirmed != true && controller_name != "members"
             flash[:error] = "Your account has not been verified. Please check your email for your verification link. If you did not receive your verification email, Please click <a href='#{member_resend_confirmation_path}' >here</a> to resend it."
-            redirect_to member_profile_url
+            redirect_to member_profile_path
             return false
           end
           true
@@ -81,14 +82,8 @@ module Gluttonberg
           end
         end
 
-        def is_blog_enabled
-          unless Gluttonberg::Comment.table_exists? == true
-            raise ActiveRecord::RecordNotFound
-          end
-        end
-
         def store_location
-          @page = env['gluttonberg.page']
+          @page = env['GLUTTONBERG.PAGE']
           if @page.blank?
             session[:return_to] = request.url
           else
@@ -97,25 +92,16 @@ module Gluttonberg
         end
 
         def retrieve_locale
-          @locale = env['gluttonberg.locale']
+          @locale = env['GLUTTONBERG.LOCALE']
         end
 
         # Exception handlers
         def not_found
-          render :layout => "bare" , :template => 'gluttonberg/public/exceptions/not_found' , :status => 404, :handlers => [:haml], :formats => [:html]
+          render :layout => "bare" , :template => 'exceptions/not_found' , :status => 404, :handlers => [:haml], :formats => [:html]
         end
 
         def access_denied
-          render :layout => "bare" , :template => 'gluttonberg/public/exceptions/access_denied', :handlers => [:haml], :formats => [:html]
-        end
-
-        # handle NotAcceptable exceptions (406)
-        def not_acceptable
-          render :layout => "bare" , :template => 'gluttonberg/public/exceptions/not_acceptable', :handlers => [:haml], :formats => [:html]
-        end
-
-        def internal_server_error
-          render :layout => "bare" , :template => 'gluttonberg/public/exceptions/internal_server_error', :handlers => [:haml], :formats => [:html]
+          render :layout => "bare" , :template => 'exceptions/access_denied' , :status => 403, :handlers => [:haml], :formats => [:html]
         end
 
         def current_localization_slug
@@ -125,11 +111,6 @@ module Gluttonberg
             Gluttonberg::Locale.first_default.slug
           end
         end
-
-        def localized_text(english , chineese)
-          (current_localization_slug == "cn" ? chineese : english )
-        end
-
     end
   end #public
 end

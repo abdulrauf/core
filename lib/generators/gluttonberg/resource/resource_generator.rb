@@ -10,9 +10,10 @@ class Gluttonberg::ResourceGenerator < Rails::Generators::Base
   argument :resource_name, :type => :string, :required => true
   argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
 
-  hook_for :draggable, :aliases => "-d" , :type => :boolean
-  hook_for :importable, :aliases => "-i" , :type => :boolean
-  hook_for :localized, :aliases => "-l" , :type => :boolean
+  class_option :draggable, :aliases => "-d" , :type => :boolean
+  class_option :importable, :aliases => "-i" , :type => :boolean
+  class_option :localized, :aliases => "-l" , :type => :boolean
+  class_option :without_versioning, :aliases => "-w" , :type => :boolean
 
   def initialize(args, *options)
     super(args, *options)
@@ -52,8 +53,12 @@ class Gluttonberg::ResourceGenerator < Rails::Generators::Base
 
   def add_config
     menu_config_filename = "config/initializers/gluttonberg_menu_settings.rb"
-    code =  "Gluttonberg::Components.register(:#{plural_name}, :label => '#{plural_class_name}', :admin_url => :admin_#{plural_name})\n"
-    File.open(menu_config_filename, "a+") { |file| file.write(code) }
+    code =  "Gluttonberg::Components.register(:#{plural_name}, :label => '#{plural_class_name}', :admin_url => :admin_#{plural_name}, :can_model_name => '#{class_name}')\n"
+    if File.exist?(menu_config_filename)
+      append_file(menu_config_filename, code)
+    else
+      File.open(menu_config_filename, "a+") { |file| file.write(code) }
+    end
   end
 
   protected
@@ -88,6 +93,10 @@ class Gluttonberg::ResourceGenerator < Rails::Generators::Base
 
     def class_name
       ([file_name]).map!{ |m| m.camelize }.join('::')
+    end
+
+    def versioned_class_name
+      localized? ? class_name + "Localization" : class_name
     end
 
     def plural_class_name
@@ -129,6 +138,11 @@ class Gluttonberg::ResourceGenerator < Rails::Generators::Base
 
     def localized?
       !(options[:localized].blank?)
+    end
+
+    # by default models are versioned
+    def versioned?
+      options[:without_versioning].blank?
     end
 
     def attr_db_type_wrapper(attr)
@@ -189,7 +203,7 @@ class Gluttonberg::ResourceGenerator < Rails::Generators::Base
     def import_export_routes
   %{
     match \"/#{plural_name}/import(.:format)\" => \"#{plural_name}#import\" , :as => :#{plural_name}_import
-    match \"/#{plural_name}/export(.:format)\" => \"#{plural_name}#export\" , :as => :#{plural_name}_export
+    get \"/#{plural_name}/export(.:format)\" => \"#{plural_name}#export\" , :as => :#{plural_name}_export
   }
     end
 

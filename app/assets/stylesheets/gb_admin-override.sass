@@ -187,23 +187,31 @@ body
   background-position: 15px -32px
   background-repeat: no-repeat
 
-.dashboard.well
-  background-color: #fff
+.dashboard
+  .well
+    background-color: #fff
 
-.dashboard .nav-list
-  margin: 0
-  padding: 0
+  &.row-fluid
+    .span3
+      :min-width 200px
 
-.dashboard a
-  display: block
-  margin: 0 0 3px 0
+  .nav-list
+    margin: 0
+    padding: 0
 
-.dashboard a.edit
-  background-image: url(/assets/gb_icon_blog.png)
+  a
+    display: block
+    margin: 0 0 3px 0
 
-.dashboard a.add
-  background-image: url(/assets/gb_icon_add.png)
+    &.edit
+      background-image: url(/assets/gb_icon_blog.png)
 
+    &.add
+      background-image: url(/assets/gb_icon_add.png)
+
+  .waiting_for_approval
+    a  
+      display: inline
 
 
 a
@@ -339,6 +347,10 @@ form
 
     input[type="text"]
       :width 510px
+
+    .chzn-search
+      input[type="text"]
+        :width 100%
 
     textarea
       :width 510px
@@ -591,6 +603,10 @@ table
 .dropdown-menu li.danger > a:hover
   background-color: #DA4F49
 
+.dropdown-menu li.menu-section-title
+  :padding-left 7px
+  :color black
+  :font-weight bold
 .versions.page_content_form
   .btn-group
     :float left
@@ -778,7 +794,7 @@ body .redactor_toolbar li a.redactor_btn_gb_link
   display: block
   height: 40px
   margin: 5px 0
-  padding: 5px 10px 5px 40px
+  padding: 5px 10px 5px 50px
   color: #333
   text-decoration: none
   border: 1px solid #dddddd
@@ -857,3 +873,167 @@ body .redactor_toolbar li a.redactor_btn_gb_link
       :padding-top 0px
       :right 0px
       :width 86px
+
+.dd-collapsed
+  .dd-list
+    display: none
+
+.dd-item > button
+  display: block
+  position: relative
+  cursor: pointer
+  float: left
+  width: 25px
+  height: 20px
+  margin: 10px 0
+  padding: 0
+  text-indent: 100%
+  white-space: nowrap
+  overflow: hidden
+  border: 0
+  background: transparent
+  font-size: 14px
+  line-height: 1
+  text-align: center
+  font-weight: bold
+  :margin-left 29px
+  :margin-right 25px
+  :outline none
+
+  &:before
+    content: '+'
+    display: block
+    position: absolute
+    width: 100%
+    text-align: center
+    text-indent: 0
+  &[data-action="collapse"]:before
+    content: '-'
+
+.repeater-drag-node
+  background: url("/assets/gb_drag_handle.png") no-repeat
+  width: 11px
+  height: 10px
+  display: block
+  float: left
+  margin: 2px 10px 0 0
+  cursor: move
+
+select.size_selector
+  :width 128px
+  :font-size 12px
+
+.date-time-wrapper
+  .date-time-input-wrapper
+    input
+      :float left
+      &.datefield
+        :margin-right 10px
+        :width 70px
+      &.timefield
+        :width 60px
+  .help-block
+    .span2
+      :font-size 11px
+      &.datehelp
+        :width 80px
+        :margin-right 10px
+      &.timehelp
+        :width 90px
+
+.form_field_wrapper.form-repeater-wrapper
+  ul:first-child
+    list-style: none
+    margin-top: 20px
+    margin-left: 0px
+    padding-top: 5px
+
+    :border 1px solid #dddddd
+    li
+      :background-color white
+      :border-bottom 1px solid #eee
+      :margin
+        :bottom 10px
+        :top 5px
+      &:last-child
+        :border-bottom none
+      &:hover
+        :background-color #f5f5f5
+
+
+      .repeater-drag-node
+        :margin-left 10px
+
+      .repeater-delete-wrapper
+        :float right
+        :margin-right 10px
+
+      .expandable.expanded
+        .h5_inner
+          :display none
+
+      .expandable
+        background: url('/assets/gb_arrow.png') top right no-repeat
+        cursor: pointer
+
+      .collapsed
+        background: url('/assets/gb_arrow.png') bottom right no-repeat
+        cursor: pointer
+
+    img
+      :width 100px
+      :display inline-block
+      :margin-left 0px
+      :margin-right 0px
+
+    .thumbnails
+      .span4
+        :width 275px
+      .thumbnail
+        .caption
+          :width 150px
+          :display inline-block
+          :padding-right 0px
+    .gallery_image_repeater_form
+      input
+        width:  95%
+
+#ajax_new_asset_form.uploading
+  .file_to_upload
+    label.error
+      :display none !important
+  .controls
+    input
+      :display inline !important
+
+.ajax-upload-progress
+  :display none
+
+.restore-auto-save
+  :background #F7F8E0
+  :border 1px solid #dddddd
+  :border-radius 3px
+  :padding 10px
+  :padding-bottom 0px
+  :margin-bottom 15px
+  :width 500px
+
+.pagination
+  a
+    &.previous_page
+      :border-left-width 1px
+
+body .redactor_toolbar li a.redactor_btn_gluttonberg_embeds
+  :background-position -600px
+
+
+ul.chosen-results
+  @for $i from 0 through 10
+    li.level-#{$i}
+      padding-left: 6px + 12px * $i
+.span4
+  .chzn-select
+    :width 100%
+.home_page_setting_dropdown.chzn-select
+  :width 100%
+  :max-width 500px

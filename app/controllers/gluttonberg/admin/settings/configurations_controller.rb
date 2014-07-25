@@ -9,7 +9,19 @@ module Gluttonberg
         before_filter :authorize_user_for_create_or_destroy, :only => [:delete, :new, :create, :destroy]
         record_history :@setting
 
+        # Confuguration/settings listing page
         def index
+          # grab multisite settings
+          @multisite = Rails.configuration.multisite.kind_of?(Hash)
+          # grab all global settings
+          @cms_settings = Setting.where("site is NULL or site=''").order("row asc").all
+          # grab all settings for all sites
+          @site_wise_settings = {}
+          if @multisite
+            Rails.configuration.multisite.each do |key, val|
+              @site_wise_settings[key] = Setting.where(:site => key).order("row asc").all
+            end
+          end
           @settings = Setting.order("row asc").all
           @current_home_page_id  = Page.home_page.id unless Page.home_page.blank?
           @pages = Page.all
@@ -61,13 +73,11 @@ module Gluttonberg
         end
 
         def destroy
-          if @setting.destroy
-            flash[:notice] = "The configuration was successfully deleted."
-            redirect_to admin_configurations_path
-          else
-            flash[:error] = "There was an error deleting the configuration."
-            redirect_to admin_configurations_path
-          end
+          generic_destroy(@setting, {
+            :name => "setting",
+            :success_path => admin_configurations_path,
+            :failure_path => admin_configurations_path
+          })
         end
 
         private

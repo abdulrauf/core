@@ -1,11 +1,7 @@
 module Gluttonberg
   module Membership
     module Import
-      def self.included(klass)
-        klass.class_eval do
-          extend ClassMethods
-        end
-      end
+      extend ActiveSupport::Concern
 
       module ClassMethods
         ###############################
@@ -32,38 +28,19 @@ module Gluttonberg
 
           if PrivateMethods.known_columns_valid?(known_columns)
             csv_table.each_with_index do |row , index |
-                if index > 0 # ignore first row because its meta data row
-                  user_info = PrivateMethods.read_data_row(row, known_columns, other_columns)
+              if index > 0 # ignore first row because its meta data row
+                user_info = PrivateMethods.read_data_row(row, known_columns, other_columns)
 
-                  #attach user to an group if its valid
-                  PrivateMethods.attach_user_to_group(user_info, row, known_columns, other_columns, group_ids)
+                #attach user to an group if its valid
+                PrivateMethods.attach_user_to_group(user_info, row, known_columns, other_columns, group_ids)
 
-                  user = where(:email => row[known_columns[:email]]).first
-                  if user.blank?
-                    user = PrivateMethods.prepare_user_record(user_info, row)
-
-                    #if its valid then save it send an email and also add it to successfull_users array
-                    if user.valid?
-                      user.save
-                      if invite == "1"
-                        # we will regenerate password and send it member
-                        MemberNotifier.delay.welcome(user)
-                      end
-                      successfull_users << user
-                    else # if failed then add it to failed list
-                      failed_users << user
-                    end
-                  else
-                    if  !contains_user?(user , successfull_users) and !contains_user?(user , updated_users)
-                      if user.update_attributes(user_info)
-                        updated_users << user
-                      else
-                        failed_users << user
-                      end
-                    end
-                  end
-                end # if csv row index > 0
-
+                user = where(:email => row[known_columns[:email]]).first
+                if user.blank?
+                  PrivateMethods.create_member(user_info, invite, row, successfull_users , failed_users , updated_users)
+                else
+                  PrivateMethods.update_member(user, user_info, successfull_users , failed_users , updated_users)
+                end
+              end # if csv row index > 0
             end #loop
           else
             return "Please provide a valid CSV file with correct column names"
@@ -116,11 +93,12 @@ module Gluttonberg
 
         def self.read_data_row(row, known_columns, other_columns)
           user_info = {
-            :first_name => row[known_columns[:first_name]],
-            :last_name => row[known_columns[:last_name]],
-            :email => row[known_columns[:email]],
             :group_ids => []
           }
+          user_info[:first_name] = row[known_columns[:first_name]] unless Rails.configuration.member_csv_metadata[:first_name].blank? 
+          user_info[:last_name] = row[known_columns[:last_name]]  unless Rails.configuration.member_csv_metadata[:last_name].blank?
+          user_info[:email] = row[known_columns[:email]]  unless Rails.configuration.member_csv_metadata[:email].blank?
+
           other_columns.each do |key , val|
             if !val.blank? && val >= 0
               if row[val].blank? || !user_info[key].kind_of?(String)
@@ -134,9 +112,7 @@ module Gluttonberg
         end
 
         def self.known_columns_valid?(known_columns)
-          known_columns[:first_name] &&
-          known_columns[:last_name]  &&
-          known_columns[:email]
+          known_columns[:first_name] && known_columns[:email]
         end
 
         def self.attach_user_to_group(user_info, row, known_columns, other_columns, group_ids)
@@ -160,16 +136,41 @@ module Gluttonberg
           user_info
         end #attr_user_to_group
 
-        def self.prepare_user_record
+        def self.prepare_user_record(user_info, row)
           # generate random password
-          temp_password = generateRandomString
+          temp_password = Gluttonberg::Member.generateRandomString
           password_hash = {
             :password => temp_password ,
             :password_confirmation => temp_password
           }
 
           # make user object
-          new(user_info.merge(password_hash))
+          Gluttonberg::Member.new(user_info.merge(password_hash))
+        end
+
+        def self.create_member(user_info, invite, row, successfull_users , failed_users , updated_users)
+          user = PrivateMethods.prepare_user_record(user_info, row)
+          #if its valid then save it send an email and also add it to successfull_users array
+          if user.valid?
+            user.save
+            if invite == "1"
+              # we will regenerate password and send it member
+              MemberNotifier.delay.welcome(user)
+            end
+            successfull_users << user
+          else # if failed then add it to failed list
+            failed_users << user
+          end
+        end
+        
+        def self.update_member(user, user_info, successfull_users , failed_users , updated_users)
+          if !Gluttonberg::Member.contains_user?(user , successfull_users) and !Gluttonberg::Member.contains_user?(user , updated_users)
+            if user.update_attributes(user_info)
+              updated_users << user
+            else
+              failed_users << user
+            end
+          end
         end
 
       end #PrivateMethods

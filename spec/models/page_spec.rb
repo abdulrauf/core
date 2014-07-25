@@ -48,12 +48,12 @@ module Gluttonberg
       Engine.config.localize = false
       @page.public_path.should == "/first-name"
       Engine.config.localize = true
-      @page.public_path.should == "/en-au/first-name"
+      @page.public_path.should == "/en/first-name"
       Engine.config.localize = localize
     end
 
     it "should return correct name_and_code" do
-      @page.current_localization.name_and_code.should == "first name (Australia English)"
+      @page.current_localization.name_and_code.should == "first name (English)"
     end
 
     it "should have only one home page at a time" do
@@ -65,8 +65,8 @@ module Gluttonberg
       Page.home_page.id.should == current_home.id
       Page.home_page_name.should == current_home.name
 
-      current_home.home.should be_true
-      page2.home.should be_false
+      current_home.home.should be_truthy
+      page2.home.should be_falsey
 
       page3 = Page.create(:name => "Page3" , :description_name => 'home')
       page4 = Page.create(:name => "Page4" , :home => true, :description_name => 'home')
@@ -74,8 +74,8 @@ module Gluttonberg
       current_home.reload
       page4.reload
 
-      page4.home.should be_true
-      current_home.home.should be_false
+      page4.home.should be_truthy
+      current_home.home.should be_falsey
 
       page5 = Page.create(:name => "Page5" , :description_name => 'home')
       new_home = Page.create(:name => "New Home", :description_name => 'home')
@@ -85,21 +85,25 @@ module Gluttonberg
       new_home.reload
       current_home.reload
 
-      new_home.home.should be_true
-      current_home.home.should be_false
+      new_home.home.should be_truthy
+      current_home.home.should be_falsey
     end
 
 
 
-    it "should load contents (html_contents, image_contents, plain_text_contents)" do
+    it "should load contents (html_contents, image_contents, plain_text_contents, select_contents, textarea_contents)" do
       @page.respond_to?(:html_contents).should == true
       @page.respond_to?(:image_contents).should == true
       @page.respond_to?(:plain_text_contents).should == true
+      @page.respond_to?(:textarea_contents).should == true
+      @page.respond_to?(:select_contents).should == true
 
-      #in my example newsletter has one content for each type
+      #in my example generic_page has one content for each type
       @page.html_contents.length.should == 1
       @page.image_contents.length.should == 1
       @page.plain_text_contents.length.should == 1
+      @page.textarea_contents.length.should == 1
+      @page.select_contents.length.should == 1
     end
 
     it "should have parent and children assoications" do
@@ -107,6 +111,11 @@ module Gluttonberg
       p2 = Page.create(:name => "P2" , :description_name => 'home' , :parent => p1)
       p1.children.length.should == 1
       p2.parent.id.should == p1.id
+
+      p1.slug.should == "p1"
+      p1.path.should == "p1"
+      p2.slug.should == "p2"
+      p2.path.should == "p1/p2"
     end
 
 
@@ -200,13 +209,13 @@ module Gluttonberg
       page = Page.create! :name => 'redirect to path', :description_name => 'redirect_to_path'
       page.redirect_required?.should == true
       page.redirect_url.should == "/local-path"
-    end 
+    end
 
     it "rewrite_required?" do
       page = Page.create! :name => 'rewrite required', :description_name => 'examples'
       page.rewrite_required?.should == true
       @page.rewrite_required?.should == false
-    end 
+    end
 
   end #Page
 end

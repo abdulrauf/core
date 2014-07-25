@@ -1,4 +1,4 @@
-= form_for(@member, :url => url , :html => {:class => "validation" , :multipart=>true}) do  |f|
+= form_for(@member, :url => url , :html => {:class => "validation auto_save" , :multipart=>true}) do  |f|
   = gb_error_messages_for(@member)
 
   .span5
@@ -24,6 +24,8 @@
       %p
         = f.label :password
         = f.password_field(:password, :class => "large ")
+        %p.help-block
+          Password #{Rails.configuration.password_validation_message}
       
       %p
         = f.label :password_confirmation

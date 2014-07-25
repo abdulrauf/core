@@ -5,6 +5,10 @@ module Gluttonberg
     module AssetLibrary
       class AssetsController < Gluttonberg::Admin::AssetLibrary::BaseController
         before_filter :find_asset , :only => [:crop , :save_crop , :delete , :edit , :show , :update , :destroy  ]
+        before_filter :authorize_user , :except => [:destroy , :delete]
+        before_filter :authorize_user_for_destroy , :only => [:destroy , :delete]
+        before_filter :authorize_user_for_edit , :only => [:edit , :update, :crop, :save_crop]
+
         record_history :@asset
         include Gluttonberg::ApplicationHelper
 
@@ -92,7 +96,7 @@ module Gluttonberg
           @asset.user_id = current_user.id
           if @asset.save
             flash[:notice] = "The asset was successfully created."
-            redirect_to(admin_asset_url(@asset))
+            redirect_to(admin_asset_path(@asset))
           else
             prepare_to_edit
             render :new
@@ -106,7 +110,7 @@ module Gluttonberg
 
           if @asset.update_attributes(params[:asset])
             flash[:notice] = "The asset was successfully updated."
-            redirect_to(admin_asset_url(@asset))
+            redirect_to(admin_asset_path(@asset))
           else
             prepare_to_edit
             flash[:error] = "Sorry, The asset could not be updated."
@@ -131,7 +135,19 @@ module Gluttonberg
         private
           def find_asset
             @asset = Asset.where(:id => params[:id]).first
-            raise ActiveRecord::RecordNotFound  if @asset.blank?
+            raise ActiveRecord::RecordNotFound if @asset.blank?
+          end
+
+          def authorize_user
+            authorize! :manage, Gluttonberg::Asset
+          end
+
+          def authorize_user_for_destroy
+            authorize! :destroy, @asset
+          end
+
+          def authorize_user_for_edit
+            authorize! :edit, @asset
           end
 
       end # controller

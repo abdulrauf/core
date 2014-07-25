@@ -7,7 +7,7 @@
 
 ## About
 
-The **Gluttonberg** goal has always been to create a Content Management System that's great for users, content manager and developers. The focus of **Gluttonberg 2.5** has been two-fold: a refined management user interface to make maintaining your website even easier and a change in the architecture of the system to support our new functionality modules: *Events*, *TV*, *Mobile* and soon *eCommerce*.
+**Gluttonberg** is an Open Source CMS developed by the team at ***Freerange Future***. As designers and developers, we love the flexibility of Ruby, but got tired of taking care of authentication, asset mangement, page management (and so on...) with every install. We created **Gluttonberg** to take care of that boring stuff so we could start having fun sooner.
 
 ## Setup
 
@@ -24,3 +24,7 @@ The following setups will get you up and running.
 4. Run the **Gluttonberg** installer rake task, the task will move all required files into place, migrate the database and then ask you for admin user details. `bundle exec rake gluttonberg:install`
 5. Start the server. `foreman start`
 6. Login to the [admin page](http://localhost:5000/admin) and start building. `http://localhost:5000/admin`
+
+## Help
+
+If you need help using **Gluttonberg** or are looking for tips, please read the [HELP.md](HELP.md) file.

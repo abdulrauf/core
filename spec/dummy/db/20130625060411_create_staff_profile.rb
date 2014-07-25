@@ -4,12 +4,14 @@ class CreateStaffProfile < ActiveRecord::Migration
     create_table :staff_profiles do |t|
       t.string :name
       t.integer :face_id
+      t.decimal :package, :precision => 6, :scale => 3
 
       t.string :slug
       t.string :previous_slug
       t.integer :position
       t.column :state , :string #use for publishing
       t.datetime :published_at
+      t.integer :user_id
 
       t.timestamps
     end

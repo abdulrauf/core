@@ -3,12 +3,11 @@ module Gluttonberg
     module FormBuilder
       include ActionView::Helpers
       def publisable_dropdown
+        ActiveSupport::Deprecation.warn "f.publisable_dropdown is deprecated and will be removed in Gluttonberg 4.0, use submit_and_publish_controls(form, object, can_publish, schedule_field=true, revisions=true, opts={}) instead."
         object = self.object
         val = object.state
         if val == "not_ready"
           val = "ready"
-        else
-          val = "published"
         end
         @@workflow_states = [  ['Published' , "published" ] ,[ 'Draft' , 'ready' ] , [ "Archived" , 'archived' ]  ]
         object.published_at = Time.zone.now if object.published_at.blank?
@@ -17,6 +16,14 @@ module Gluttonberg
         html += datetime_field("published_at")
         html += "</div></fieldset>"
 
+        html.html_safe
+      end
+
+      def publishing_schedule(schedule_field)
+        object = self.object
+        object.published_at = Time.zone.now if object.published_at.blank?
+        html = ""
+        html += schedule_field ? datetime_field("published_at") : hidden_field("published_at")
         html.html_safe
       end
 
@@ -31,7 +38,7 @@ module Gluttonberg
         time_field_html_opts[:class] = "" if time_field_html_opts[:class].blank?
         time_field_html_opts[:class] += " small span2 timefield"
 
-        time_field_html_opts[:onblur] = date_field_html_opts[:onblur]
+        time_field_html_opts[:onblur] = "checkTimeFormat(this,'.#{unique_field_name}_error');combine_datetime('#{unique_field_name}');"
 
         date = time = ""
 
@@ -54,8 +61,9 @@ module Gluttonberg
 
       # Assets
       def asset_browser( field_name , opts = {} )
-        asset_id = self.object.send(field_name.to_s)
+        opts[:asset_id] = asset_id = self.object.send(field_name.to_s)
         filter = opts[:filter] || "all"
+
 
         opts[:id] = "#{field_name}_#{asset_id}" if opts[:id].blank?
         asset = if asset_id.blank?
@@ -94,6 +102,7 @@ module Gluttonberg
           view.extend ApplicationHelper
           view.render(:partial => partial, :locals => assigns)
         end
+
     end #FormBuilder
 
     ActionView::Helpers::FormBuilder.send(:include , Gluttonberg::Helpers::FormBuilder)

@@ -3,12 +3,13 @@ module Gluttonberg
     module Processor
       class Image
 
-        attr_accessor :asset
+        attr_accessor :asset, :replace_backup
 
-        def self.process(asset_obj)
+        def self.process(asset_obj, replace_backup=true)
           if asset_obj.asset_type.asset_category.name == "image"
             processor = self.new
             processor.asset = asset_obj
+            processor.replace_backup = replace_backup
             processor.generate_thumb_and_proper_resolution
           end
         end
@@ -16,9 +17,13 @@ module Gluttonberg
         # Generates thumbnails for images, but also additionally checks to see
         # if the uploaded image exceeds the specified maximum, in which case it will resize it down.
         def generate_thumb_and_proper_resolution
-          if File.exist?(asset.tmp_location_on_disk)
-            generate_proper_resolution
-            generate_image_thumbnails
+          begin
+            if File.exist?(asset.tmp_location_on_disk)
+              generate_proper_resolution
+              generate_image_thumbnails
+            end
+          rescue => e
+            puts e
           end
         end
 
@@ -76,7 +81,7 @@ module Gluttonberg
 
 
         def generate_proper_resolution
-          asset.make_backup
+          asset.make_backup(replace_backup)
           image = read_image_file(asset)
           asset.update_attributes( :width => image.width.to_i, :height => image.height.to_i)
           _resize_and_save(asset, image, asset.class.max_image_size, nil, asset.file_name)
@@ -84,7 +89,7 @@ module Gluttonberg
         end
 
         private
-          def _prepare_image_crop_arguments(config)
+          def _prepare_image_crop_arguments(x , y , w , h, config)
             thumb_defined_width = config[:geometry].split('x').first
             scaling_percent = (thumb_defined_width.to_i/(w.to_i*1.0))*100
             aurgments_str = " -crop #{w}x#{h}+#{x}+#{y} +repage"
@@ -101,6 +106,8 @@ module Gluttonberg
           def _resize_image_thumbnail(name, config, image, asset, file_name)
             aurgments_str = (config[:grayscale] == true ?  "-colorspace Gray" : "" )
             resize_str = config[:geometry]
+
+            aurgments_str << " -quality #{config[:quality]} " unless config[:quality].blank?
 
             #fixed size thumbnail
             if config[:geometry].include?("#")

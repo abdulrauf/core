@@ -31,6 +31,18 @@ Gluttonberg::PageDescription.add do
       type  :image_content
     end
 
+    section :excerpt do
+      label "Excerpt"
+      type :textarea_content
+    end
+
+    section :theme do
+      label "Theme"
+      type :select_content
+      select_options_data lambda{ ["Theme 1", "Theme 2"] }
+      select_options_default_value lambda{ "Theme 1" }
+    end
+
   end
 
   # page description which redirects to rails defined route examples
@@ -47,6 +59,24 @@ Gluttonberg::PageDescription.add do
     description "About Page"
     view "about"
     layout "public"
+
+    section :top_content do
+      label "Content"
+      type :html_content
+    end
+
+  end
+
+  page :about2 do
+    label "About2"
+    description "About2 Page"
+    view "about2"
+    layout "public"
+
+    section :left_content do
+      label "Left Sidebar"
+      type :html_content
+    end
 
     section :top_content do
       label "Content"

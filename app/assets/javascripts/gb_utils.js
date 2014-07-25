@@ -6,6 +6,7 @@ function extractLast( term ) {
   return split( term ).pop();
 }
 
+/* Very handy method to check if javascript field/variable is empty */
 function blank(obj){
   return obj === undefined || obj === null || obj === "null" || obj === "" || (obj.length !== undefined && obj.length <= 0) || obj == "/gray_scale_images/original/missing.png";
 }
@@ -85,6 +86,7 @@ jQuery.extend({
     	var io = jQuery.createUploadIframe(id, s.secureuri);
     	var frameId = 'jUploadFrame' + id;
     	var formId = 'jUploadForm' + id;
+
       // Watch for a new set of requests
       if ( s.global && ! jQuery.active++ )
 	    {
@@ -199,7 +201,7 @@ jQuery.extend({
         jQuery.handleError(s, xml, null, e);
       }
 
-    	jQuery('#' + frameId).load(uploadCallback	);
+    	jQuery('#' + frameId).load(uploadCallback);
       return {abort: function () {}};
   },
 
@@ -930,11 +932,12 @@ function checkDateFormat(datefield,error_label){
             return false;
           }
         } else {
-          show_validation_error(error_label ,"Invalid date format: " + form.startdate.value);
+          show_validation_error(error_label ,"Invalid date format: " + date);
           datefield.focus();
           return false;
         }
       }
+    error_label.html('');
 }
 
 function checkTimeFormat(timeField,error_label)
@@ -944,7 +947,7 @@ function checkTimeFormat(timeField,error_label)
     // regular expression to match required time format
     re = /^(\d{1,2}):(\d{2})(\s){0,1}([a|p]m)?$/i;
 
-    if(time.value != '') {
+    if(!blank(time)) {
       if(regs = time.match(re)) {
         if(regs[3]) {
           // 12-hour value between 1 and 12
@@ -974,6 +977,7 @@ function checkTimeFormat(timeField,error_label)
       }
     }
 
+    error_label.html('');
     return true;
 }
 
@@ -1309,7 +1313,7 @@ var dragTreeManager = {
 
       var remote_move_node = function(source, destination, mode){
 
-        var ids = get_sorted_element_ids(".drag-tree").toString();
+        var ids = get_sorted_element_ids(dragTree).toString();
         $.ajax({
             type: "POST",
             url: dragTree.attr("rel"),
@@ -1358,7 +1362,7 @@ var dragTreeManager = {
               bottomOffset = height / 2;
             }
 
-            $("#"+$(this).attr('rel')).addClass("ui-draggable-dragging")
+            dragTree.find("#"+$(this).attr('rel')).addClass("ui-draggable-dragging")
 
             if( dragManager.dropSite.attr('id') != $(this).attr('rel')){
               if (mouseTop < (top + topOffset)){
@@ -1469,10 +1473,10 @@ var dragTreeManager = {
 
 // it take ids of all ".orderable-list-item" inside container (wrapper_id)
 // and returns array of all ids
-function get_sorted_element_ids(wrapper_id)
+function get_sorted_element_ids(wrapper)
 {
    try{
-      var items = $(wrapper_id).find("tbody tr");
+      var items = wrapper.find("tbody tr.ui-droppable");
       items = $.map(items, function(value){
         return value.id.replace("node-","");
       });
@@ -1513,8 +1517,9 @@ RedactorPlugins.asset_library_image = {
   {
     this.buttonAddBefore('video', 'asset_library_image', 'Insert image', function()
     {
+      this.selectionSave();
       var self = this;
-      var url = "/admin/browser?filter=image";
+      var url = "/admin/browser?filter=image&size_selector=true";
       var link = $("<a href='"+url+"'/>");
       var p = $("<p> </p>");
       AssetBrowser.showOverlay()
@@ -1527,12 +1532,43 @@ RedactorPlugins.asset_library_image = {
   }
 }
 
+RedactorPlugins.gluttonberg_embeds = {
+
+  init: function()
+  {
+    this.buttonAddAfter('table', 'gluttonberg_embeds', 'Embed', function()
+    {
+      this.selectionSave();
+      console.log($(".redactor_btn_gluttonberg_embeds").attr('title'))
+      var self = this;
+      var url = "/admin/embeds/list-for-redactor";
+      AssetBrowser.showOverlay()
+      $.get(url, null,
+        function(markup) {
+          $("body").append(markup);
+          $("#embedDialog .cancel").click(function(e){
+            AssetBrowser.overlay.hide();
+            $("#embedDialog").remove();
+            e.preventDefault();
+          });
+
+          $("#embedDialog .embed-btn").click(function(){
+            self.selectionRestore();
+            self.insertHtml($(this).attr('data-shortcode'));
+            $("#embedDialog .cancel").click();
+            e.preventDefault();
+          })
+        }
+      );
+    });
+  }
+}
+
 RedactorPlugins.gluttonberg_pages = {
 
   init: function()
   {
     var self = this;
-
     var dropdown = {};
 
     if(linkCount > 0){
@@ -1544,7 +1580,6 @@ RedactorPlugins.gluttonberg_pages = {
       };
     }
 
-
     dropdown["link"] = {
       title: 'Insert link',
       func: 'linkShow'
@@ -1555,7 +1590,25 @@ RedactorPlugins.gluttonberg_pages = {
       exec: 'unlink'
     };
 
+    dropdown["gluttonberg_files"] = {
+        title: 'Attach file',
+        callback: function(){
+          this.selectionSave();
+          self.showAssetSelector(self);
+        }
+      };
+
     this.buttonAddAfter('table', 'gb_link', 'Link', false, dropdown);
+  },
+  showAssetSelector : function(self){
+    var url = "/admin/browser?size_selector=true";
+    var link = $("<a href='"+url+"' class='attach'/>");
+    var p = $("<p> </p>");
+    $.get(url, null,
+      function(markup) {
+        AssetBrowser.load(p, link, markup, self );
+      }
+    );
   },
   showModal: function(self){
     self.selectionSave();
@@ -1688,3 +1741,68 @@ function getParameterByName(url, name ){
     return decodeURIComponent(results[1].replace(/\+/g, " "));
   }
 }
+
+
+/* Helper methods for form repeater. Add/remove functionality of repeatable component.
+*/
+var HtmlFormRepeater = {
+  add: function(containerselector, rowSelector, link, callback){
+    var duplicatedForm = $(containerselector).find(rowSelector).last().clone();
+    HtmlFormRepeater.htmlCleanup(link, duplicatedForm);
+    $(containerselector).append(duplicatedForm);
+    var newElement = $(containerselector).find(rowSelector).last();
+    if(callback != undefined){
+      callback(newElement);
+    }
+    $(newElement).find("._destroy_button").click(function(e){
+      HtmlFormRepeater.remove($(this).parents(rowSelector));
+      e.preventDefault();
+    });
+  },
+  htmlCleanup: function(link, duplicatedForm){
+    var count = parseInt($(link).attr("data-count"));
+    count++;
+
+    duplicatedForm.show();
+    var html = duplicatedForm.html(); 
+    if(html) {
+      html = HtmlFormRepeater.idAndNameCleanup(count, html);
+      duplicatedForm.html(html);
+      HtmlFormRepeater.textInputCleanup(duplicatedForm);
+      duplicatedForm.find("input._destroy").val("");
+    }
+    duplicatedForm.addClass("new-item");
+    duplicatedForm.find("input._position").val(count);
+    $(link).attr("data-count", count);
+  },
+  idAndNameCleanup: function(count, html){
+    html = html.replace(/\[[0-9]+\]/g, "["+count+"]"); // name update
+    html = html.replace(/_attributes_[0-9]+_/g, "_attributes_"+count+"_"); //id update
+    return html;
+  },
+  textInputCleanup: function(duplicatedForm){
+    duplicatedForm.find("input[type='text']").val("");
+  },
+  remove: function(rowSelector){
+    $(rowSelector).hide();
+    $(rowSelector).find("._destroy").val("true");
+  },
+  initRemoveButton: function(containerselector, rowSelector){
+    $(containerselector).find("._destroy_button").click(function(e){
+      HtmlFormRepeater.remove($(this).parents(rowSelector));
+      e.preventDefault();
+    });
+  },
+  initSorter: function(containerselector, rowSelector){
+    $(containerselector).sortable({
+      revert: true,
+      handle: ".repeater-drag-node",
+      update:  function( event, ui ){
+        $(containerselector).find(rowSelector).each(function(index){
+          $(this).find("._position").val(index);
+        });
+      }
+    });
+  }
+}
+

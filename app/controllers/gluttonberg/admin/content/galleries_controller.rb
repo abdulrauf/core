@@ -4,6 +4,7 @@
 module Gluttonberg
   module Admin
     module Content
+      # Manage image/video gallery
       class GalleriesController < Gluttonberg::Admin::BaseController
         drag_tree GalleryImage , :route_name => :admin_gallery_move
         include ActionView::Helpers::TextHelper
@@ -20,29 +21,35 @@ module Gluttonberg
 
         def new
           @gallery = Gallery.new
+          prepare_repeaters
         end
 
         def create
+          clean_empty_repeater
           @gallery = Gallery.new(params[:gluttonberg_gallery])
           @gallery.user_id = current_user.id if @gallery.user_id.blank?
           if @gallery.save
-            save_collection_images
+            @gallery.save_collection_images(params, current_user)
             flash[:notice] = "The gallery was successfully created."
             redirect_to edit_admin_gallery_path(@gallery)
           else
-            render :edit
+            prepare_repeaters
+            render :new
           end
         end
 
         def edit
+          prepare_repeaters
         end
 
         def update
+          clean_empty_repeater
           if @gallery.update_attributes(params[:gluttonberg_gallery])
-            save_collection_images
+            @gallery.save_collection_images(params, current_user)
             flash[:notice] = "The gallery was successfully updated."
             redirect_to edit_admin_gallery_path(@gallery)
           else
+            prepare_repeaters
             flash[:error] = "Sorry, The gallery could not be updated."
             render :edit
           end
@@ -58,29 +65,11 @@ module Gluttonberg
         end
 
         def destroy
-          if @gallery.delete
-            flash[:notice] = "The gallery was successfully deleted."
-            redirect_to admin_galleries_path
-          else
-            flash[:error] = "There was an error deleting the gallery."
-            redirect_to admin_galleries_path
-          end
-        end
-
-        def remove_image
-          item = GalleryImage.where(:id => params[:id]).first
-          Gluttonberg::Feed.log(current_user,item.gallery, item.gallery.title , "removed image '#{item.image.name}'")
-          item.delete
-          render :text => "{success:true}"
-        end
-
-        def add_image
-          @gallery = Gallery.where(:id => params[:id]).first
-          max_position = @gallery.gallery_images.length
-          @gallery_item = @gallery.gallery_images.create(:asset_id => params[:asset_id] , :position => (max_position )  )
-          @gallery_images = @gallery.gallery_images.order("position ASC")
-          Gluttonberg::Feed.log(current_user,@gallery, @gallery.title , "added image '#{@gallery_item.image.name}'")
-          render :layout => false
+          generic_destroy(@gallery, {
+            :name => "gallery",
+            :success_path => admin_galleries_path,
+            :failure_path => admin_galleries_path
+          })
         end
 
         protected
@@ -93,27 +82,30 @@ module Gluttonberg
 
           def find_gallery
             @gallery = Gallery.where(:id => params[:id]).first
+            raise ActiveRecord::RecordNotFound if @gallery.blank?
             @gallery_images = @gallery.gallery_images.order("position ASC")
           end
 
           def authorize_user
             authorize! :manage, Gluttonberg::Gallery
+            authorize! :manage_model, "Gluttonberg::Gallery"
           end
 
           def authorize_user_for_destroy
-            authorize! :destroy, Gluttonberg::Gallery
+            authorize! :destroy, @gallery
           end
 
-          def save_collection_images
-            unless params[:collection_id].blank?
-              collection = AssetCollection.where(:id => params[:collection_id]).first
-              collection_images = collection.images
-              Gluttonberg::Feed.log(current_user,@gallery, @gallery.title , "add #{pluralize(collection_images.length , 'image')} from collection '#{collection.name}'")
-              max_position = @gallery.gallery_images.length
-              collection_images.each_with_index do |image , index|
-                @gallery.gallery_images.create(:asset_id => image.id , :position => (max_position + index)  )
+          def prepare_repeaters
+            @gallery.gallery_images.build if @gallery.gallery_images.blank?
+          end
+
+          def clean_empty_repeater
+            unless params[:gluttonberg_gallery].blank? || params[:gluttonberg_gallery][:gallery_images_attributes].blank?
+              params[:gluttonberg_gallery][:gallery_images_attributes].each do |key, val|
+                if val[:asset_id].blank? && val[:caption].blank? && val[:credits].blank? && val[:link].blank? && val[:id].blank?
+                  params[:gluttonberg_gallery][:gallery_images_attributes].delete(key)
+                end
               end
-              @gallery.update_attributes(:collection_imported => true)
             end
           end
 

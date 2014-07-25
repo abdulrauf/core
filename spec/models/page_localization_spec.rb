@@ -52,37 +52,6 @@ module Gluttonberg
     end
 
     private
-      def create_image_asset
-        file = GbFile.new(File.join(RSpec.configuration.fixture_path, "assets/gb_banner.jpg"))
-        file.original_filename = "gluttonberg_banner.jpg"
-        file.content_type = "image/jpeg"
-        file.size = 300
-        param = {
-          :name=>"temp file",
-          :file=> file,
-          :description=>"<p>test</p>"
-        }
-        Gluttonberg::Library.bootstrap
-        asset = Asset.new( param )
-        asset.save
-        asset
-      end
-
-      def prepare_content_data(contents, asset)
-        contents_data = {}
-        contents.each do |content|
-          contents_data[content.association_name] = {} unless contents_data.has_key?(content.association_name)
-          contents_data[content.association_name][content.id.to_s] = {} unless contents_data[content.association_name].has_key?(content.id.to_s)
-          if content.association_name == :image_contents
-            contents_data[content.association_name][content.id.to_s][:asset_id] = asset.id
-          elsif content.association_name == :plain_text_content_localizations
-            contents_data[content.association_name][content.id.to_s][:text] = "Newsletter Title"
-          elsif content.association_name == :html_content_localizations
-            contents_data[content.association_name][content.id.to_s][:text] = "<p>Newsletter Description</p>"
-          end
-        end
-        contents_data
-      end
 
       def compare_data(contents, asset)
         contents.each do |content|
@@ -92,6 +61,10 @@ module Gluttonberg
             content.text.should == "Newsletter Title"
           elsif content.association_name == :html_content_localizations
             content.text.should == "<p>Newsletter Description</p>"
+          elsif content.association_name == :textarea_content_localizations
+            content.text.should == "Newsletter Excerpt"
+          elsif content.association_name == :select_contents
+            content.text.should == "Theme 1"
           end
         end
       end
@@ -101,6 +74,8 @@ module Gluttonberg
         page.easy_contents(:description).should == "<p>Newsletter Description</p>"
         page.easy_contents(:image).should == asset.url
         page.easy_contents(:image, :url_for => :fixed_image).should == asset.url_for(:fixed_image)
+        page.easy_contents(:excerpt).should == "Newsletter Excerpt"
+        page.easy_contents(:theme).should == "Theme 1"
       end
   end #PageLocalization
 end

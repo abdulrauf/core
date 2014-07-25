@@ -1,49 +1,46 @@
 Rails.application.routes.draw do
-
   mount_at = Gluttonberg::Engine.config.mount_at
 
   scope :module => 'gluttonberg' do
     namespace :admin do
       root :to => "main#index"
+      get "waiting-for-approval" => "main#waiting_for_approval" , :as => :waiting_for_approval
+      get "decline-content/:object_class/:version_id" => "main#decline_content" , :as => :decline_content
+      
+
       scope :module => 'content' do
+        controller :auto_save do
+          match "/autosave/:model_name/:id" => :create , :as => :autosave
+          get "/remove_autosaved_version/:model_name/:id" => :destroy , :as => :remove_autosaved_version
+          get "/retreive_changes/:model_name/:id" => :retreive_changes , :as => :retreive_changes
+        end
+
         get "/flagged_contents" => "flag#index" , :as => :flagged_contents
         get '/flagged_contents/moderation/:id/:moderation' => "flag#moderation", :as => :flagged_contents_moderation
+
         resources :pages do
-          get 'delete', :on => :member
-          get 'duplicate', :on => :member
-          resources :page_localizations
-          get 'edit_home' => "pages#edit_home", :as =>  :edit_home
-          post 'update_home' => "pages#update_home", :as =>  :update_home
-        end
-
-        get "pages_list_for_tinymce" => "pages#pages_list_for_tinymce" , :as => :pages_list_for_tinymce
-        get "/comments/spam_detection_for_all_pending" => "comments#spam_detection_for_all_pending" , :as => :spam_detection_for_all_pending_comments
-        get "/comments/pending" => "comments#pending" , :as => :pending_comments
-        get "/comments/spam" => "comments#spam" , :as => :spam_comments
-        get "/comments/approved" => "comments#approved" , :as => :approved_comments
-        get "/comments/rejected" => "comments#rejected" , :as => :rejected_comments
-        get "/comments/moderation/:id" => "comments#moderation" , :as => :comment_moderation
-        get "/comments/delete/:id" => "comments#delete" , :as => :comment_delete
-        delete "/comments/destroy/:id" => "comments#destroy" , :as => :comment_destroy
-        get "/comments/block_comment_author/:id" => "comments#block_comment_author" , :as => :block_comment_author
-
-        resources :blogs do
-          get 'delete', :on => :member
-          resources :articles do
-            get 'delete', :on => :member
-            get 'duplicate', :on => :member
-            resources :comments do
-              get 'delete', :on => :member
-              get 'moderation', :on => :member
-            end
+          member do
+            get 'delete'
+            get 'duplicate'
+            get 'collapse'
+            get 'expand'
           end
+          collection do
+            post 'move' =>  :move_node, :as => :move
+            post 'update_home', :as =>  :update_home
+            match 'import'
+            get 'export'
+            get 'collapse_all'
+            get 'expand_all'
+          end
+
+          resources :page_localizations
         end
+        get "pages_list_for_tinymce" => "pages#pages_list_for_tinymce" , :as => :pages_list_for_tinymce
 
         post "/pages/move(.:format)" => "pages#move_node" , :as=> :page_move
         resources :galleries do
           get 'delete', :on => :member
-          get 'add_image', :on => :member
-          get 'remove_image' , :on => :member
         end
         post "/galleries/move(.:format)" => "galleries#move_node" , :as=> :gallery_move
 
@@ -51,7 +48,6 @@ Rails.application.routes.draw do
 
       # Settings
       scope :module => 'settings' do
-        get 'settings' => "main#index",      :as => :settings
         get 'history' => "global_history#index",      :as => :global_history
         resources :locales do
           get 'delete', :on => :member
@@ -69,6 +65,11 @@ Rails.application.routes.draw do
           get 'delete', :on => :member
         end
         post "/stylesheets/move(.:format)" => "stylesheets#move_node" , :as=> :stylesheet_move
+
+        resources :embeds do
+          get 'delete', :on => :member
+          get 'list-for-redactor' => :list_for_redactor, :on => :collection
+        end
       end
 
       namespace :membership do
@@ -80,6 +81,7 @@ Rails.application.routes.draw do
         resources :members do
           get 'delete', :on => :member
           get 'welcome' , :on => :member
+          get 'group/:id' => "members#group", :on => :collection, :as => :group_members
         end
         resources :groups do
           get 'delete', :on => :member
@@ -102,6 +104,7 @@ Rails.application.routes.draw do
         post "destroy_assets_in_bulk"  => "assets_bulk#destroy_assets_in_bulk" , :as => :destroy_assets_in_bulk
         get "browser"  => "assets#browser" , :as => :asset_browser
         get "browser-collection/:id"  => "assets_ajax#browser_collection" , :as => :asset_browser_collection
+        get "filter_assets_by_date"  => "assets_ajax#filter_assets_by_date" , :as => :filter_assets_by_date
         get "assets/:category/page/:page"  => "assets#category" , :as => :asset_category
         get "collections/:id/page/:page"  => "collections#show" , :as => :asset_collection
         resources :collections  do
@@ -111,9 +114,9 @@ Rails.application.routes.draw do
 
       resources :password_resets
 
-      get "login" => "user_sessions#new"
+      get "login" => "user_sessions#new", :as => :login
       post "login" => "user_sessions#create"
-      get "logout" => "user_sessions#destroy"
+      get "logout" => "user_sessions#destroy", :as => :logout
     end
 
     scope :module => 'public' do
@@ -121,22 +124,9 @@ Rails.application.routes.draw do
       get "/_public/page" => "pages#show"
       get "/restrict_site_access" => "pages#restrict_site_access" , :as => :restrict_site_access
       get "sitemap" => "pages#sitemap" , :as => :sitemap
-      # Blog Stuff
-
-      scope "(/:locale)" do
-        resources :blogs do
-          resources :articles do
-            resources :comments
-            get "preview"
-          end
-        end
-      end
-
 
       get "/mark_as_flag/:flaggable_type/:flaggable_id" => "flag#new" , :as => :mark_as_flag
       post "/save_mark_as_flag" => "flag#create" , :as => :save_mark_as_flag
-      get "/articles/tag/:tag" => "articles#tag" , :as => :articles_by_tag
-      get "/articles/unsubscribe/:reference" => "articles#unsubscribe" , :as => :unsubscribe_article_comments
       get "(/:locale)/member/login" => "member_sessions#new" , :as => :member_login
       post "(/:locale)/member/login" => "member_sessions#create"  , :as => :post_member_login
       get "(/:locale)/member/logout" => "member_sessions#destroy", :as => :member_logout

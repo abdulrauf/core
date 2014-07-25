@@ -5,6 +5,12 @@ module Gluttonberg
   class Engine < Rails::Engine
 
     # Config defaults
+    def init_settings
+      init_basic_settings
+      init_advance_settings
+      init_internal_settings
+    end
+
     def init_basic_settings
       config.mount_at = '/'
       config.app_name = 'Gluttonberg'
@@ -25,15 +31,18 @@ module Gluttonberg
       config.asset_mixins = []
       config.custom_css_for_cms = false
       config.custom_js_for_cms = false
+      config.custom_css_files_for_backend = []
+      config.custom_js_files_for_backend = []
       # User model always concat following three roles
       # ["super_admin" , "admin" , "contributor"]
       config.user_roles = []
+      config.limited_roles = ["contributor"]
       config.cms_based_public_css = false
       config.flagged_content = false
       config.search_models = {
         "Gluttonberg::Page" => [:name],
-        "Gluttonberg::Blog" => [:name , :description],
-        "Gluttonberg::ArticleLocalization" => [:title , :body],
+        "Gluttonberg::Blog::Weblog" => [:name , :description],
+        "Gluttonberg::Blog::ArticleLocalization" => [:title , :body],
         "Gluttonberg::PlainTextContentLocalization" => [:text] ,
         "Gluttonberg::HtmlContentLocalization" => [:text]
       }
@@ -46,7 +55,7 @@ module Gluttonberg
         :groups => "GROUPS",
         :bio => "BIO"
       }
-      config.member_mixins = []
+      config.model_mixins = {}
       config.password_pattern = /^(?=.*\d)(?=.*[a-zA-Z])(?!.*[^\w\S\s]).{6,}$/
       config.password_validation_message = "must be a minimum of 6 characters in length, contain at least 1 letter and at least 1 number"
       config.multisite = false
@@ -60,28 +69,29 @@ module Gluttonberg
       ]
     end
 
-    init_basic_settings
-    init_advance_settings
-    init_internal_settings
-
+    init_settings
     # Load rake tasks
     rake_tasks do
-      load File.join(File.dirname(__FILE__), 'rails/railties/tasks.rake')
       load File.join(File.dirname(__FILE__), 'gluttonberg/tasks/asset.rake')
       load File.join(File.dirname(__FILE__), 'gluttonberg/tasks/gluttonberg.rake')
     end
 
     initializer "initialize gluttonberg" do |app|
-      init_middlewares(app)
-      init_gb_components(app)
-      init_acts_as_taggable_on(app)
-      require 'active_link_to'
-      init_static_assets(app)
-      init_mount_at(app)
-      init_asset_precompile(app)
+      init_gluttonberg(app)
     end
 
     private
+
+      def init_gluttonberg(app)
+        init_middlewares(app)
+        init_gb_components(app)
+        init_acts_as_taggable_on(app)
+        require 'active_link_to'
+        init_static_assets(app)
+        init_mount_at(app)
+        init_asset_precompile(app)
+      end
+
       def init_middlewares(app)
         app.middleware.use Gluttonberg::Middleware::Locales
         app.middleware.use Gluttonberg::Middleware::Rewriter
@@ -93,12 +103,16 @@ module Gluttonberg
         Gluttonberg::Content::ImportExportCSV.setup
         Gluttonberg::Content::CleanHtml.setup
         Gluttonberg::PageDescription.setup
+        Gluttonberg::Content::Validations.setup
 
         # register content class here.
         # It is required for lazyloading environments.
         Gluttonberg::Content::Block.register(Gluttonberg::PlainTextContent)
         Gluttonberg::Content::Block.register(Gluttonberg::HtmlContent)
         Gluttonberg::Content::Block.register(Gluttonberg::ImageContent)
+        Gluttonberg::Content::Block.register(Gluttonberg::TextareaContent)
+        Gluttonberg::Content::Block.register(Gluttonberg::SelectContent)
+
 
         Gluttonberg::Content.setup
 
@@ -126,7 +140,7 @@ module Gluttonberg
       def init_asset_precompile(app)
         if Rails.version > "3.1"
           #Gluttonberg precompile hook
-          app.config.assets.precompile += ["*.js", "*.css"]
+          app.config.assets.precompile += ["*.js", "chosen.css", "gb_360player.css", "gb_bootstrap-responsive.css", "gb_bootstrap.css", "gluttonberg.css", "redactor.css", "gb_admin-override.css"]
         end
       end
   end

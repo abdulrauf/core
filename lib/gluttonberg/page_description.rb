@@ -28,7 +28,10 @@ module Gluttonberg
         :domain       => :default,
         :behaviour  => :default,
         :layout     => "public",
-        :view       => "default"
+        :view       => "default",
+        :page_options => {},
+        :group => nil,
+        :contributor_access => false
       }
       @sections = {}
       @@_descriptions[name] = self
@@ -122,7 +125,7 @@ module Gluttonberg
       end
     end
 
-    def find_home_page_description_for_domain?(domain_name)
+    def self.find_home_page_description_for_domain?(domain_name)
       page_desc = PageDescription.all.find{|key , val|  val.home_for_domain?(domain_name) }
       page_desc = page_desc.last unless page_desc.blank?
       page_desc
@@ -157,6 +160,22 @@ module Gluttonberg
       @options[:behaviour] == :redirect
     end
 
+    def page_options(opts = {})
+      @options[:page_options] = opts
+    end
+
+    def group(grp)
+      @options[:group] = grp
+    end
+
+    def contributor_access(access)
+      @options[:contributor_access] = access
+    end
+
+    def contributor_access?
+      @options[:contributor_access]
+    end
+
     # Configures the page to act as a rewrite to named route. This doesn’t
     # work like a rewrite in the traditional sense, since it is intended to be
     # used to redirect requests to a controller. Becuase of this it can't rewrite
@@ -181,7 +200,7 @@ module Gluttonberg
     # :path   - The path to redirect to, hey, simple!
     # :page   - Allows the user to specify which other page they want to
     #           redirect to.
-    def redirect_to(path_or_url)      
+    def redirect_to(path_or_url)
       @redirect_path_or_url  = path_or_url if path_or_url
       @options[:behaviour]  = :redirect
     end
@@ -218,7 +237,7 @@ module Gluttonberg
         @custom_config = {}
       end
 
-      %w(type limit label).each do |opt|
+      %w(type limit label select_options_data select_options_default_value).each do |opt|
         class_eval %{
           def #{opt}(opt_value)
             @options[:#{opt}] = opt_value

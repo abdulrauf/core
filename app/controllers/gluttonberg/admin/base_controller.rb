@@ -73,50 +73,25 @@ module Gluttonberg
 
         end
 
-        # A helper for finding shortcutting the steps in finding a model ensuring
-        # it has a localization and raising a NotFound if it’s missing.
-        # TODO Fixme
-        def with_localization(model, id)
-          result = model.first_with_localization(localization_ids.merge(:id => id))
-          raise NotFound unless result
-          result.ensure_localization!
-          result
-        end
-
-        # Returns a hash with the locale and dialect ids extracted from the params
-        # or where they're missing, it will grab the defaults.
-        # TODO Do we need it anymore?
-        def localization_ids
-          @localization_opts ||= begin
-            if params[:localization]
-              ids = params[:localization].split("-")
-              {:locale => ids[0]}
-            else
-              locale = Gluttonberg::Locale.first_default
-              # Inject the ids into the params so our form fields behave
-              params[:localization] = "#{locale.id}"
-              {:locale => locale.id}
-            end
+        # Generic code for destroy action. It is done trying to avoid duplication of similar code
+        def generic_destroy(object, opts)
+          if object.destroy
+            flash[:notice] = "The #{opts[:name]} was successfully deleted."
+            redirect_to opts[:success_path]
+          else
+            flash[:error] = "There was an error deleting the #{opts[:name]}."
+            redirect_to opts[:failure_path]
           end
         end
 
-        # Below is all the required methods for authentication
-
-        def require_backend_access
-          return false unless require_user
-          unless current_user.have_backend_access?
-            store_location
-            flash[:notice] = "You dont have privilege to access this page"
-            redirect_to admin_login_url
-            return false
-          end
+        # Generic code for create action. It is done trying to avoid duplication of similar code
+        def generic_create(object, opts)
+          generic_create_or_update(object, opts)
         end
 
-
-        def is_blog_enabled
-          unless Gluttonberg::Comment.table_exists? == true
-            raise CanCan::AccessDenied
-          end
+        # Generic code for update action. It is done trying to avoid duplication of similar code
+        def generic_update(object, opts)
+          generic_create_or_update(object, opts)
         end
 
         def store_location
@@ -129,16 +104,19 @@ module Gluttonberg
         end
 
         def access_denied
-          render :layout => "bare" , :template => 'gluttonberg/admin/exceptions/access_denied', :handlers => [:haml], :formats => [:html]
+          render :layout => "bare" , :template => 'gluttonberg/admin/exceptions/not_found' , :status => 403, :handlers => [:haml], :formats => [:html]
         end
 
-        # handle NotAcceptable exceptions (406)
-        def not_acceptable
-          render :layout => "bare" , :template => 'gluttonberg/admin/exceptions/not_acceptable', :handlers => [:haml], :formats => [:html]
-        end
-
-        def internal_server_error
-          render :layout => "bare" , :template => 'gluttonberg/admin/exceptions/internal_server_error', :handlers => [:haml], :formats => [:html]
+      private
+        def generic_create_or_update(object, opts)
+          message = object.new_record? ? "created" : "updated"
+          render_action = object.new_record? ? :new : :edit
+          if object.save
+            flash[:notice] = "The #{opts[:name]} was successfully #{message}."
+            redirect_to opts[:success_path]
+          else
+            render render_action
+          end
         end
 
     end

@@ -1,23 +1,47 @@
+- @slug = @locale ? @locale.slug : ""
+- if @page
+  - @pages = (@page.number_of_children == 0 && @page.children.published.blank?) && !@page.parent.blank? ? @page.parent.children.published : @page.children.published
+
 !!!
 %html
   %head
-    %title= page_title
+    %title
+      = page_title
     = javascript_include_tag "application", :charset => "utf-8"
     = stylesheet_link_tag "application"
     = csrf_meta_tag
     %meta{ :charset =>"utf-8"}
     = google_analytics_js_tag
-    - unless page_keywords.blank?
+    - if !page_keywords.blank?
       %meta{:content=>"#{page_keywords}",:property=>"keywords"}
-    - unless page_description.blank?
+    - if !page_description.blank?
       %meta{:content=>"#{page_description}",:property=>"description"}
       %meta{:content=>"#{page_description}",:property=>"og:description"}
-    - unless page_fb_icon_path.blank?
-      %meta{:content=>"#{page_fb_icon_path}",:property=>"og:image"}
-    - unless page_title.blank?
-      %meta{:content=>"#{page_title}",:property=>"og:title"}
+    - if !og_image.blank?
+      %meta{:content=>"#{og_image}",:property=>"og:image"}
+    - if !og_site_name.blank?
+      %meta{:content=>"#{og_site_name}",:property=>"og:site_name"}
+    - if !page_title.blank?
+      %meta{:content=>"#{og_title}",:property=>"og:title"}
     %link{ :rel=>"shortcut icon", :href=>"/assets/favicon.png"}
   %body{:class=>body_class(@page)}
-    - slug = @locale ? @locale.slug : ""
-    = navigation_tree(nil, :id => "navigation" , :slug => slug   )
-    = yield
+    .navbar.navbar-inverse.navbar-static-top{role: "navigation"}
+      .container
+        .navbar-header
+          %button.navbar-toggle{"data-target" => ".navbar-collapse", "data-toggle" => "collapse", type: "button"}
+            %span.sr-only Toggle navigation
+            %span.icon-bar
+            %span.icon-bar
+            %span.icon-bar
+          %a.navbar-brand{href: "/"}
+            = website_title
+        .collapse.navbar-collapse
+          = navigation_tree(nil, :slug => @slug, :class => "nav navbar-nav", :max_depth => 0)
+
+    .container
+      .row
+        .col-md-3
+          = navigation_tree(@pages, :id => "list-group", :slug => @slug, :class => "nav nav-pills nav-stacked", :max_depth => 0)
+
+        .col-md-9
+          = yield

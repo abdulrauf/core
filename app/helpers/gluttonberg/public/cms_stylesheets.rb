@@ -3,6 +3,7 @@
 module Gluttonberg
   module Public
     module CmsStylesheets
+      # It generates css links for all published CMS based css
       def cms_managed_stylesheets_link_tag
         if Rails.configuration.cms_based_public_css == true
           html = ""
@@ -16,7 +17,7 @@ module Gluttonberg
 
       private
         def _stylesheet_tag_for(stylesheet)
-          html << "\n"
+          html = ""
           unless stylesheet.css_prefix.blank?
             html << stylesheet.css_prefix
             html << "\n"
@@ -26,6 +27,7 @@ module Gluttonberg
             html << "\n"
             html << stylesheet.css_postfix
           end
+          html
         end
 
     end #CmsStylesheets

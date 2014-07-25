@@ -3,7 +3,7 @@
 module Gluttonberg
   module Admin
     module Messages
-
+      # Renders model errors if there is any in Gluttonberg's default style
       def gb_error_messages_for(model_object)
         if model_object.errors.any?
             lis = ""
@@ -16,6 +16,7 @@ module Gluttonberg
         end
       end
 
+      # Renders flash messages (notice, warning and error) if there is any in Gluttonberg's default style
       def render_flash_messages
         html = ""
         ["notice", "warning", "error"].each do |type|
@@ -24,7 +25,6 @@ module Gluttonberg
               :id => "alert alert-#{type}", :class => "flash").html_safe
           end
         end
-
         content_tag("div", html.html_safe, :id => "flash").html_safe
       end
     end

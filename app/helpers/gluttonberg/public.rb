@@ -6,12 +6,13 @@ module Gluttonberg
       include PageInfo
       include MetaTags
       include NavTree
+      include CmsStylesheets
       include HtmlTruncate
       include Assets
 
       # Returns the code for google analytics
       def google_analytics_js_tag
-        code = Gluttonberg::Setting.get_setting("google_analytics")
+        code = Gluttonberg::Setting.get_setting("google_analytics", current_site_config_name)
         unless code.blank?
           javascript_tag do
             %{
@@ -47,7 +48,6 @@ module Gluttonberg
         end
       end
 
-
       def clean_public_query(string)
         unless string.blank?
           string = string.gsub("'", "\\\\'")
@@ -62,9 +62,41 @@ module Gluttonberg
         unless string.blank?
           string = clean_public_query(string)
           string = string.gsub("$", "")
-          string = string.gsub(/[\!\*'"″′‟‘’‛„‚”“”˝\(\)\;\:\.\@\&\=\+\-\$\,\/?\%\#\[\]]/,'')
+          string = string.gsub(/[\!\*'"″′‟‘’‛„‚”“”˝\\\(\)\;\:\.\@\&\=\+\-\$\,\/?\%\#\[\]]/,'')
+          string
         else
           string
+        end
+      end
+
+      # process shortcodes and returns processed string with all shortcode replaced to actual content
+      def shortcode_safe(str)
+        unless str.blank? || str.nil?
+          temp_string = str
+          temp_string = temp_string.gsub(/\[(\w|\s|-|_)*\]/) do |match|
+            shortcode = match.gsub("[","").gsub("]","")
+            shortcode_tokens = shortcode.split(" ")
+            shortcode_method = "#{shortcode_tokens.first}_shortcode"
+            shortcode_args = shortcode_tokens.length > 1 ? shortcode_tokens[1..-1] : []
+            embed_obj = Gluttonberg::Embed.where(:shortcode => shortcode_tokens.first).first 
+
+            if !embed_obj.blank?
+              embed_shortcode(embed_obj)
+            elsif respond_to?(shortcode_method)
+              send(shortcode_method, shortcode_args)
+            else
+              match
+            end
+          end
+          temp_string.html_safe
+        else
+          str
+        end
+      end
+
+      def embed_shortcode(embed_obj)
+        unless embed_obj.blank? || embed_obj.body.blank?
+          embed_obj.body.html_safe
         end
       end
 

@@ -4,7 +4,7 @@ module Gluttonberg
   module Admin
     module Membership
       class MembersController < Gluttonberg::Admin::Membership::BaseController
-        before_filter :find_member, :only => [:delete, :edit, :update, :destroy, :find_member]
+        before_filter :find_member, :only => [:delete, :edit, :update, :destroy]
         before_filter :authorize_user , :except => [:edit , :update]
         record_history :@member
         include Gluttonberg::Public
@@ -17,6 +17,18 @@ module Gluttonberg
             @members = @members.where(["first_name #{command} :query OR last_name #{command} :query OR email #{command} :query OR bio #{command} :query " , :query => "%#{query}%" ])
           end
           @members = @members.paginate(:page => params[:page] , :per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items") )
+        end
+
+        def group
+          @group = Group.where(:id => params[:id]).first
+          @members = @group.members.order(get_order).includes(:groups)
+          unless params[:query].blank?
+            query = clean_public_query(params[:query])
+            command = Gluttonberg.like_or_ilike
+            @members = @members.where(["first_name #{command} :query OR last_name #{command} :query OR email #{command} :query OR bio #{command} :query " , :query => "%#{query}%" ])
+          end
+          @members = @members.paginate(:page => params[:page] , :per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items") )
+          render :template => "/gluttonberg/admin/membership/members/index"
         end
 
         def new
@@ -33,7 +45,7 @@ module Gluttonberg
           @member.profile_confirmed = true
 
           if @member.save
-            flash[:notice] = "Member account registered and welcome email is also sent to the member"
+            flash[:notice] = "Member has been registered, A welcome email has been sent."
             MemberNotifier.welcome(@member.id).deliver
             redirect_to admin_membership_members_path
           else
@@ -67,12 +79,11 @@ module Gluttonberg
         end
 
         def destroy
-          if @member.destroy
-            flash[:notice] = "Member deleted!"
-          else
-            flash[:error] = "There was an error deleting the member."
-          end
-          redirect_to admin_membership_members_path
+          generic_destroy(@member, {
+            :name => "member",
+            :success_path => admin_membership_members_path,
+            :failure_path => admin_membership_members_path
+          })
         end
 
         def export
@@ -99,7 +110,7 @@ module Gluttonberg
         end
 
         def welcome
-           MemberNotifier.welcome( @member ).deliver
+           MemberNotifier.welcome( params[:id] ).deliver
            flash[:notice] = "Welcome email is successfully sent to the member."
            redirect_to admin_membership_members_path
         end

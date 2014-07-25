@@ -5,7 +5,7 @@ ASSET_LIBRARY_BASE_DIR = File.join(File.dirname(__FILE__), "../..")
 namespace :gluttonberg do
   namespace :library do
 
-    desc "Try and generate thumbnails for all assets"
+    desc "Regenerate all thumbnails for all assets"
     task :create_thumbnails => :environment do
       category = Gluttonberg::AssetCategory.where(:name => "image").first
       if category
@@ -15,8 +15,19 @@ namespace :gluttonberg do
           if !File.exist?(asset.tmp_location_on_disk) && !File.exist?(asset.tmp_original_file_on_disk)
             asset.download_asset_to_tmp_file
           end
-          Gluttonberg::Library::Processor::Image.process(asset)
+          Gluttonberg::Library::Processor::Image.process(asset, false)
           asset.remove_file_from_tmp_storage
+        end
+      end
+    end
+
+    desc "Regenerate all thumbnails for all assets using sidekiq"
+    task :create_thumbnails_delayed => :environment do
+      category = Gluttonberg::AssetCategory.where(:name => "image").first
+      if category
+        assets = category.assets
+        assets.each do |asset|
+          PhotoJob.perform_async(asset.id)
         end
       end
     end
@@ -48,12 +59,15 @@ namespace :gluttonberg do
 
     desc "Migrate assets from public/user_assets folder to S3"
     task :migrate_assets_to_s3 => :environment do
+      class S3Storage
+        include Gluttonberg::Library::Storage::S3
+      end
       Dir.entries("public/user_assets").each do |asset_folder|
         if !asset_folder.include?(".DS_Store") && File.directory?("public/user_assets/" + asset_folder)
           Dir.entries("public/user_assets/"+asset_folder).each do |asset_file|
             if !asset_file.include?(".DS_Store") && !File.directory?("public/user_assets/" + asset_folder+"/"+asset_file)
               begin
-                Gluttonberg::Library::Storage::S3::ClassMethods.migrate_file_to_s3(asset_folder , asset_file)
+                S3Storage.migrate_file_to_s3(asset_folder , asset_file)
               rescue => e
                 puts "Error: #{e.message}"
               end

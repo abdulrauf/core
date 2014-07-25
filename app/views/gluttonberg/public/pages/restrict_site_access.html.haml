@@ -29,7 +29,7 @@
         .span5.offset4
           = backend_logo("/assets/gb_logo.png" , {:height => "46px"})
           %h1#login_title
-            = Gluttonberg::Setting.get_setting("title")
+            = website_title
 
           %div#form.well
             %p
@@ -37,7 +37,7 @@
               %br
               If you have an access password, please enter it below.
             = form_tag restrict_site_access_path , :method => :get do
-              = hidden_field_tag "return_url" ,params[:return_url]
+              = hidden_field_tag "return_url" , params[:return_url]
               %fieldset
                 .control-group
                   = password_field_tag 'password', nil, :class => "span4" , :value => "", :title=>"Password"

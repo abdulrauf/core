@@ -16,8 +16,8 @@
           = nav_link('Export', admin_<%= plural_name %>_export_path)
           <% end %>
         <% unless draggable? %>
-        - if !@<%= plural_name %>.blank? || !params[:query].blank?
-          - form_tag(admin_<%=plural_name%>_path, :method => :get  , :id => "list_search_form") do
+        - if !@<%= plural_name %>.blank?
+          = form_tag(admin_<%=plural_name%>_path, :method => :get  , :id => "list_search_form") do
             = text_field_tag :query, params[:query]
             = submit_tag "Search" , :class => "button"
 
@@ -29,7 +29,7 @@
       - else
 
         <% if draggable? %>
-        %table{:id => 'pages_table', :class => "table table-bordered #{(can?(:reorder , <%=class_name%>) ? "#{drag_tree_table_class} " : " " )}", :cellpadding => 0, :cellspacing => 0, :rel => "" , :summary => "<%= plural_name %>" , :rel => drag_tree_url }
+        %table{:id => 'pages_table', :class => "table table-bordered #{(can?(:reorder , <%=class_name%>) ? "#{drag_tree_table_class} " : " " )}", :cellpadding => 0, :cellspacing => 0, :summary => "<%= plural_name %>" , :rel => drag_tree_url }
         <%else%>
         %table{:cellpadding => 0, :cellspacing => 0 , :class => "table table-bordered"}
         <%end%>
@@ -73,9 +73,10 @@
                       %li= link_to "Edit", edit_admin_<%= singular_name %>_path(<%= singular_name %>) , :class => ""
                       %li.divider
                       %li= link_to "Duplicate", duplicate_admin_<%= singular_name %>_path(<%= singular_name %>) , :class => ""
-                      - if can? :destroy , <%= class_name %>
+                      - if can? :destroy , <%= singular_name %>
                         %li.divider
-                        %li= link_to "Delete", delete_admin_<%= singular_name %>_path(<%= singular_name %>)  , :class => ""
+                        %li.danger
+                          = link_to "Delete", delete_admin_<%= singular_name %>_path(<%= singular_name %>)  , :class => ""
 
         <% unless draggable? %>
         = will_paginate @<%= plural_name %>

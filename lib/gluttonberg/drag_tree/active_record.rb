@@ -1,11 +1,7 @@
 module Gluttonberg
   module DragTree
     module ActiveRecord
-
-      def self.included(base)
-         base.extend(ClassMethods)
-      end
-
+      extend ActiveSupport::Concern
 
       module ClassMethods
         def is_drag_tree(options = {})
@@ -13,16 +9,17 @@ module Gluttonberg
           self.send(:include, Gluttonberg::DragTree::ActiveRecord::ModelHelpersClassMethods)
           unless options[:flat]
             acts_as_tree options
+            self.is_flat_drag_tree = false
           else
             self.make_flat_drag_tree
           end
+          self.drag_tree_scope_column = options[:scope] unless options[:scope].blank?
         end
 
         def repair_list(list)
           unless list.blank?
             list.each_with_index do |sibling , index|
-              sibling.position = index
-              sibling.save
+              sibling.update_attributes(:position => index)
             end
           end
         end
@@ -36,53 +33,64 @@ module Gluttonberg
             id = id.to_i
             sorted_elements << elements.find{ |x| x.id == id }
           end
-          sorted_elements
+          sorted_elements.blank? ? sorted_elements : sorted_elements.uniq
         end
 
       end #module ClassMethods
 
       module ModelHelpersClassMethods
-        def self.included(klass)
-          klass.class_eval do
-            cattr_accessor :is_flat_drag_tree
-            def klass.behaves_as_a_drag_tree
-              true
-            end
+        extend ActiveSupport::Concern
 
-            def klass.make_flat_drag_tree
-              self.is_flat_drag_tree = true
-            end
+        included do
+          cattr_accessor :is_flat_drag_tree, :drag_tree_scope_column
+          before_validation :set_position
+        end
 
-            def klass.behaves_as_a_flat_drag_tree
-              self.is_flat_drag_tree
-            end
+        module ClassMethods
+          def behaves_as_a_drag_tree
+            true
+          end
 
-            def klass.repair_drag_tree
-              if behaves_as_a_flat_drag_tree
-                if list_options[:scope].empty?
-                  repair_list
-                else
-                  # this is wasteful as it does a repair on every item
-                  # which means for items of the same scope they keep
-                  # getting re-repaired. :-(
-                  items = all()
-                  items.each{ |item| item.repair_list}
-                end
+          def make_flat_drag_tree
+            self.is_flat_drag_tree = true
+          end
+
+          def behaves_as_a_flat_drag_tree
+            self.is_flat_drag_tree
+          end
+
+          def repair_drag_tree
+            if self.drag_tree_scope_column.blank?
+              repair_list(self.all_sorted.all)
+            else
+              unique_scope_ids = self.select(self.drag_tree_scope_column).uniq.all
+              unique_scope_ids.each do |scope_id|
+                scope_id = scope_id.send(self.drag_tree_scope_column)
+                items = self.all_sorted(self.drag_tree_scope_column => scope_id).all
+                repair_list(items)
               end
-              # todo: add support for non flat trees
             end
-            def klass.all_sorted(query={})
-              all({:order => [:position.asc]}.merge(query))
-            end
-          end # class_eval
-        end #included
+          end
+          def all_sorted(query={})
+            objs = self.order("position asc")
+            objs = objs.where(query) unless query.blank?
+            objs
+          end
+        end #ClassMethods
       end #ModelHelpersClassMethods
 
+      def set_position
+        if self.position.blank?
+          if self.class.drag_tree_scope_column.blank?
+            self.position = self.class.count + 1
+          else
+            items_count = self.class.where(self.class.drag_tree_scope_column => self.send(self.class.drag_tree_scope_column)).count
+            self.position = items_count + (self.new_record? ? 0 : -1)
+          end
+        end
+      end
 
     end # ActiveRecord
-
-
-
 
   end #DragTree
 end  #Gluttonberg

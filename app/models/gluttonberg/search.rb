@@ -1,6 +1,8 @@
 # encoding: utf-8
 require 'will_paginate/array'
 module Gluttonberg
+  # this class do text based searching. 
+  # It supports like query for mysql and native postgresql text based searching for postgresql
   class Search
     def self.find(query, opts = {} )
       query= query.gsub(/[\\\!\*″′‟‛„‚”“”˝\(\)\;\:\.\@\&\=\+\$\,\/?\%\#\[\]]/, '')
@@ -68,11 +70,14 @@ module Gluttonberg
     def self.index_data_using_texticle
       if Gluttonberg.dbms_name == "postgresql"
         Rails.configuration.search_models.each do |model , columns|
-          model =  eval(model)
-          model.index do
-            columns.each do |column|
-              send(column)
+          begin
+            model =  eval(model)
+            model.index do
+              columns.each do |column|
+                send(column)
+              end
             end
+          rescue
           end
         end
       end
