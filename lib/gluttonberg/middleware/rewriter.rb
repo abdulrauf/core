@@ -63,7 +63,7 @@ module Gluttonberg
             route = Rails.application.routes.recognize_path(path)
           rescue
           end
-          if route.blank?
+          if route.blank? || (route[:controller] == "gluttonberg/public/pages" && route[:action] == "show")
             false
           else
             route[:action] != "error_404"
