@@ -116,7 +116,7 @@ namespace :gluttonberg do
       FileUtils.cp(File.join(Gluttonberg::Engine.root, "installer", "application_helper.rb"), File.join(Rails.root, "app", "helpers", "application_helper.rb"))
       FileUtils.cp(File.join(Gluttonberg::Engine.root, "app", "models", "ability.rb"), File.join(Rails.root, "app", "models", "ability.rb"))
 
-      FileUtils.rm(File.join(Rails.root, "public", "index.html"))
+      FileUtils.rm(File.join(Rails.root, "public", "index.html")) rescue
       FileUtils.cp(File.join(Gluttonberg::Engine.root, "installer", "500.html"), File.join(Rails.root, "public", "500.html"))
 
       FileUtils.mkdir_p(File.join(Rails.root, "app", "views", "exceptions"))
