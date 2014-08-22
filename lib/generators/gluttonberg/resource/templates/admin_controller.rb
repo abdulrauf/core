@@ -123,11 +123,11 @@ module Admin
 
       <%unless draggable? %>
       def sort_column
-        <%= class_name %>.column_names.include?(params[:sort]) ? params[:sort] : "created_at"
+        <%= class_name %>.column_names.include?(params[:sort]) ? params[:sort].to_sym : :created_at
       end
 
       def sort_direction
-        %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
+        [:asc, :desc].include?(params[:direction]) ? params[:direction].to_sym : :asc
       end
 
       def prepare_search_conditions
