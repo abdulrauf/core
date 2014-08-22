@@ -13,7 +13,7 @@ module Admin
       <%if draggable? %>
       @<%= plural_name %> = <%= class_name %>.order("position ASC ")
       <% else %>
-      @<%= plural_name %> = <%= class_name %>.order(sort_column + " " + sort_direction).where(prepare_search_conditions)
+      @<%= plural_name %> = <%= class_name %>.order(sort_column => sort_direction).where(prepare_search_conditions)
       @<%= plural_name %> = @<%= plural_name %>.paginate(:page => params[:page], :per_page => Gluttonberg::Setting.get_setting("number_of_per_page_items"))
       <% end %>
     end
