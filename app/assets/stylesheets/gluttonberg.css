@@ -10,7 +10,7 @@
  *
  *= require ./redactor
  *= require ./gb_bootstrap
- *= require ../javascripts/jcrop/css/gb_jquery-Jcrop
+ *= require ./gb_jquery-Jcrop
  *= require ./gb_360player
  *= require ./chosen
  *= require ./gb_admin-override

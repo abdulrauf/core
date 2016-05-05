@@ -7,7 +7,7 @@ module Gluttonberg
         @app = app
       end
 
-      # Reads current path if it contains any valid Gluttonberg::Locale slug 
+      # Reads current path if it contains any valid Gluttonberg::Locale slug
       # then it removes from path and add it to env['GLUTTONBERG.LOCALE_INFO']
       # in addition to that it addes locale object to env['GLUTTONBERG.LOCALE']
       #
@@ -42,12 +42,12 @@ module Gluttonberg
       end
 
       private
-        # Reads current path if it contains any valid Gluttonberg::Locale slug 
+        # Reads current path if it contains any valid Gluttonberg::Locale slug
         # then it removes from path and add it to env['GLUTTONBERG.LOCALE_INFO']
         # in addition to that it addes locale object to env['GLUTTONBERG.LOCALE']
         #
         # @param path [String]
-        # @param env [Hash] 
+        # @param env [Hash]
         def handle_prefix(path, env)
           if Gluttonberg.localized?
             locale = path.split('/')[1]
@@ -75,7 +75,7 @@ module Gluttonberg
         # Removes locale slug from env['PATH_INFO']
         #
         # @param path [String]
-        # @param env [Hash] 
+        # @param env [Hash]
         def extract_locale_prefix_from_path_info(locale, env)
           unless env['PATH_INFO'].blank?
             if ![locale, "/#{locale}", "#{locale}/", "/#{locale}/"].include?(env['PATH_INFO'])
@@ -88,4 +88,3 @@ module Gluttonberg
     end # Locales
   end # Middleware
 end # Gluttonberg
-

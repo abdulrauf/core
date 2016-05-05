@@ -10,9 +10,9 @@ module Gluttonberg
       end
 
       # Reads current path and if its not needs to be bypassed or rails route then
-      # tries to find a Gluttonberg CMS Page using this path, if it finds a page then redirect to 
-      # Public::Page show action. It assigns page object env['GLUTTONBERG.PAGE'] , 
-      # env['GLUTTONBERG.PATH_INFO'] as as page path. It helps in debugging. 
+      # tries to find a Gluttonberg CMS Page using this path, if it finds a page then redirect to
+      # Public::Page show action. It assigns page object env['GLUTTONBERG.PAGE'] ,
+      # env['GLUTTONBERG.PATH_INFO'] as as page path. It helps in debugging.
       # it also tries to find it by previous_path, if it finds a page then it redirects
       # permanently to new path of this page. Othwerise
       # it simply returns back from this middleware
@@ -20,7 +20,9 @@ module Gluttonberg
       # @param env [Hash] looking for PATH_INFO
       def call(env)
         path = env['PATH_INFO']
+        puts "----path #{path}  #{Gluttonberg::Middleware::Locales.bypass_path?(path, env)}"
         unless Gluttonberg::Middleware::Locales.bypass_path?(path, env)
+          puts "-----find page"
           unless rails_route?(path)
             page = Gluttonberg::Page.find_by_path(path, env['GLUTTONBERG.LOCALE'] , env['HTTP_HOST'])
             unless page.blank?
