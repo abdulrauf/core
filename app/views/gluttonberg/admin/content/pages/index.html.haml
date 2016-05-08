@@ -1,14 +1,14 @@
 - @window_title = "Content"
 - @page_title = "Pages"
 
-.row-fluid
-  = render :partial => "/gluttonberg/admin/content/main/sidebar"
+%div
+  .page-title
+    .title_left
+      %h3= @page_title.html_safe
+
+.row
   .span9
     .row-fluid
-      .page-header
-        %h1
-          %span.title
-            = @page_title.html_safe
       .subnav.nav.nav-pills
         - if can? :manage_object , Gluttonberg::Page.new
           = link_to('Add New Page', new_admin_page_path , :class => "btn btn-primary")

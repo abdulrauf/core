@@ -18,56 +18,70 @@
       /[if lt IE 9]
         = javascript_include_tag "gb_html5"
 
-  %body
-    .navbar.navbar-fixed-top
-      .navbar-inner
-        .container-fluid
-          %a.btn.btn-navbar{"data-target" => ".nav-collapse", "data-toggle" => "collapse"}
-            %span.icon-bar
-            %span.icon-bar
-            %span.icon-bar
-          = backend_logo("/assets/gb_logo_top.png" , {:height => "30px"})
-          %a.brand{:href => admin_root_path}
-            = website_title
-          .nav-collapse
-            %ul.nav.pull-right
-              %li
-                %a{:href => "/admin/logout"}
-                  Logout
+  %body.nav-md
+    .container.body
+      / .navbar.navbar-fixed-top
+      /   .navbar-inner
+      /     .container-fluid
+      /       %a.btn.btn-navbar{"data-target" => ".nav-collapse", "data-toggle" => "collapse"}
+      /         %span.icon-bar
+      /         %span.icon-bar
+      /         %span.icon-bar
+      /       = backend_logo("/assets/gb_logo_top.png" , {:height => "30px"})
+      /       %a.brand{:href => admin_root_path}
+      /         = website_title
+      /       .nav-collapse
+      /         %ul.nav.pull-right
+      /           %li
+      /             %a{:href => "/admin/logout"}
+      /               Logout
 
-    .navbar-main
-      %ul.nav
-        - for entry in Gluttonberg::Components.main_nav_entries
-          - if entry[2][:enabled].blank? || entry[2][:enabled] == true || (eval(entry[2][:enabled]) != false)
-            - if (entry[2][:only_for_super_admin].blank? || entry[2][:only_for_super_admin]==false || (entry[2][:only_for_super_admin]==true && session.user.is_super_admin) )
-              - active = false
-              - enabled = true
-              - case entry[1]
-                - when "/admin/"
-                  - active = params[:controller].include?('gluttonberg/admin/main')
-                - when "/admin/pages"
-                  - active = (params[:controller].include?('gluttonberg/admin/content') || (( Gluttonberg::Components.nav_entries.collect{|c| c[1]}).include?(controller_name.to_sym) ))
-                - when "/admin/assets/all/page/1"
-                  - active = params[:controller].include?('gluttonberg/admin/asset_library')
-                - when "/admin/membership/members"
-                  - active  = /^\/admin\/membership/
-                  - enabled = Rails.configuration.enable_members
-                - when "/admin/configurations"
-                  - active = params[:controller].include?('gluttonberg/admin/settings/')
-                - else
-                  - unless @menu_section_name.blank?
-                    - active = (@menu_section_name == entry[0])
-                  - else
-                    - active = (( Gluttonberg::Components.nav_entries(entry[0]).collect{|c| c[1]}).include?(controller_name.to_sym) )
-              - if enabled && (entry[2][:can_model_name].blank? || (!entry[2][:can_model_name].blank? && can?(:manage , eval(entry[2][:can_model_name]))) ) 
-                %li{:class => "mainNavLi"}
-                  = active_link_to(entry[0].to_s.capitalize, url_for(entry[1]), {:id => (entry[0].to_s.underscore).gsub(/\s/, '_') + "Nav" , :title => entry[0], :active => active } )
+      = render "/layouts/top_nav"
+      = render "/layouts/sidebar_nav"
+
+      / page content
+      / .right_col{:role => "main"}
+      /   %div
+      /     .page-title
+      /       .title_left
+      /         %h3 Plain Page
+      /       .title_right
+      /         .col-md-5.col-sm-5.col-xs-12.form-group.pull-right.top_search
+      /           .input-group
+      /             %input.form-control{:placeholder => "Search for...", :type => "text"}
+      /               %span.input-group-btn
+      /                 %button.btn.btn-default{:type => "button"} Go!
+      /     .clearfix
+      /     .row
+      /       .col-md-12.col-sm-12.col-xs-12
+      /         .x_panel{:style => "height:600px;"}
+      /           .x_title
+      /             %h2 Plain Page
+      /             %ul.nav.navbar-right.panel_toolbox
+      /               %li
+      /                 %a.collapse-link
+      /                   %i.fa.fa-chevron-up
+      /               %li.dropdown
+      /                 %a.dropdown-toggle{"aria-expanded" => "false", "data-toggle" => "dropdown", :href => "#", :role => "button"}
+      /                   %i.fa.fa-wrench
+      /                 %ul.dropdown-menu{:role => "menu"}
+      /                   %li
+      /                     %a{:href => "#"} Settings 1
+      /                   %li
+      /                     %a{:href => "#"} Settings 2
+      /               %li
+      /                 %a.close-link
+      /                   %i.fa.fa-close
+      /             .clearfix
 
 
-    .container-fluid
-      - unless flash.blank?
-        = render "/layouts/flash_messages", :locals => {:close_button => true}
-      = yield
+      .right_col{:role => "main"}
+        = yield
+
+      / .container-fluid
+      /   - unless flash.blank?
+      /     = render "/layouts/flash_messages", :locals => {:close_button => true}
+      /   = yield
 
       %hr
       %footer

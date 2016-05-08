@@ -8,10 +8,19 @@
  * You're free to add application-wide styles to this file and they'll appear at the top of the
  * compiled file, but it's generally better to create a new file per style scope.
  *
- *= require ./redactor
- *= require ./gb_bootstrap
- *= require ./gb_jquery-Jcrop
- *= require ./gb_360player
- *= require ./chosen
- *= require ./gb_admin-override
+
+  
+ *= require gentelella/bootstrap.min.css
+ *= require gentelella/fonts/css/font-awesome.min.css
+ *= require gentelella/animate.min.css
+ *= require gentelella/custom.css
+ *= require gentelella/icheck/flat/green.css
+ *= require gentelella/floatexamples.css
+ *= require gentelella/normalize.css
+ *= require gentelella/nprogress.css
+ *= require gentelella/ion.rangeSlider.css
+ *= require gentelella/ion.rangeSlider.skinFlat.css
+
+
  */
+

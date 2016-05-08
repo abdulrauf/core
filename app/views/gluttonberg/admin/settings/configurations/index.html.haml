@@ -2,30 +2,29 @@
 - @page_title = "Configuration"
 
 - @has_deletable_settings = Gluttonberg::Setting.has_deletable_settings?
-.row-fluid
-  = render :partial => "/gluttonberg/admin/settings/main/sidebar"
-  .span9
-    .row-fluid
-      .page-header
-        %h1
-          = @page_title.html_safe
-      .subnav
-        = sub_nav do
-          - if can? :create_or_destroy, Gluttonberg::Setting
-            = nav_link('Add New Setting', new_admin_configuration_path)
+%div
+  .page-title
+    .title_left
+      %h3= @page_title.html_safe
 
-      
-      - if @multisite
-        - Rails.configuration.multisite.each do |key, val|
-          %h2
-            #{val} Configuration
+.row
+  .subnav
+    = sub_nav do
+      - if can? :create_or_destroy, Gluttonberg::Setting
+        = nav_link('Add New Setting', new_admin_configuration_path)
+
   
-          = render :partial => "settings_table", :locals => {:settings => @site_wise_settings[key]}
-      
+  - if @multisite
+    - Rails.configuration.multisite.each do |key, val|
+      %h2
+        #{val} Configuration
 
-        %h2
-          Global Configuration
-          
-      = render :partial => "settings_table", :locals => {:settings => @cms_settings}
+      = render :partial => "settings_table", :locals => {:settings => @site_wise_settings[key]}
+  
+
+    %h2
+      Global Configuration
+      
+  = render :partial => "settings_table", :locals => {:settings => @cms_settings}
 
 

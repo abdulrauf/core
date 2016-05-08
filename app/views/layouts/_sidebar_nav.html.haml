@@ -1,0 +1,73 @@
+.main_container
+  .col-md-3.left_col
+    .left_col.scroll-view
+      .navbar.nav_title{:style => "border: 0;"}
+        %a.site_title{:href => admin_root_path}
+          %i.fa.fa-paw
+          %span= website_title
+      .clearfix
+      / menu profile quick info
+      .profile
+        .profile_pic
+          = image_tag "img.jpg", :class => "img-circle profile_img"
+        .profile_info
+          %span Welcome,
+          %h2 John Doe
+      / /menu profile quick info
+      %br/
+      / sidebar menu
+      #sidebar-menu.main_menu_side.hidden-print.main_menu
+        .menu_section
+          / %h3 General
+          %ul.nav.side-menu
+            - for entry in Gluttonberg::Components.main_nav_entries
+              - if entry[2][:enabled].blank? || entry[2][:enabled] == true || (eval(entry[2][:enabled]) != false)
+                - if (entry[2][:only_for_super_admin].blank? || entry[2][:only_for_super_admin]==false || (entry[2][:only_for_super_admin]==true && session.user.is_super_admin) )
+                  - active = false
+                  - enabled = true
+                  - case entry[1]
+                    - when "/admin/"
+                      - active = params[:controller].include?('gluttonberg/admin/main')
+                    - when "/admin/pages"
+                      - active = (params[:controller].include?('gluttonberg/admin/content') || (( Gluttonberg::Components.nav_entries.collect{|c| c[1]}).include?(controller_name.to_sym) ))
+                    - when "/admin/assets/all/page/1"
+                      - active = params[:controller].include?('gluttonberg/admin/asset_library')
+                    - when "/admin/membership/members"
+                      - active  = /^\/admin\/membership/
+                      - enabled = Rails.configuration.enable_members
+                    - when "/admin/configurations"
+                      - active = params[:controller].include?('gluttonberg/admin/settings/')
+                    - else
+                      - unless @menu_section_name.blank?
+                        - active = (@menu_section_name == entry[0])
+                      - else
+                        - active = (( Gluttonberg::Components.nav_entries(entry[0]).collect{|c| c[1]}).include?(controller_name.to_sym) )
+                  - if enabled && (entry[2][:can_model_name].blank? || (!entry[2][:can_model_name].blank? && can?(:manage , eval(entry[2][:can_model_name]))) ) 
+                    %li{:class => "mainNavLi"}
+                      = active_link_to(entry[0].to_s.capitalize, url_for(entry[1]), {:id => (entry[0].to_s.underscore).gsub(/\s/, '_') + "Nav" , :title => entry[0], :active => active } )
+
+                      - case entry[0].to_s.capitalize
+                        - when "Content"
+                          = render :partial => "/gluttonberg/admin/content/main/sidebar"
+                        - when "Library"
+                          = render :partial => "/gluttonberg/admin/asset_library/shared/sidebar"
+                        - when "Members"
+                          = render :partial => "/gluttonberg/admin/membership/main/sidebar"
+                        - when "Settings"
+                          = render :partial => "/gluttonberg/admin/settings/main/sidebar"
+                      / = yield :side_sub_menu
+
+
+            
+      / /sidebar menu
+      / /menu footer buttons
+      .sidebar-footer.hidden-small
+        %a{"data-placement" => "top", "data-toggle" => "tooltip", :title => "Settings"}
+          %span.glyphicon.glyphicon-cog{"aria-hidden" => "true"}
+        %a{"data-placement" => "top", "data-toggle" => "tooltip", :title => "FullScreen"}
+          %span.glyphicon.glyphicon-fullscreen{"aria-hidden" => "true"}
+        %a{"data-placement" => "top", "data-toggle" => "tooltip", :title => "Lock"}
+          %span.glyphicon.glyphicon-eye-close{"aria-hidden" => "true"}
+        %a{"data-placement" => "top", "data-toggle" => "tooltip", :title => "Logout"}
+          %span.glyphicon.glyphicon-off{"aria-hidden" => "true"}
+      / /menu footer buttons
