@@ -141,6 +141,7 @@ module Gluttonberg
         if Rails.version > "3.1"
           #Gluttonberg precompile hook
           app.config.assets.precompile += ["*.js", "gb_jquery-Jcrop.css", "chosen.css", "gb_360player.css", "gb_bootstrap-responsive.css", "gb_bootstrap.css", "gluttonberg.css", "redactor.css", "gb_admin-override.css"]
+          app.config.assets.precompile += ["gb_custom.css"] if Rails.configuration.custom_css_for_cms
         end
       end
   end
