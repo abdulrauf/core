@@ -20,9 +20,7 @@ module Gluttonberg
       # @param env [Hash] looking for PATH_INFO
       def call(env)
         path = env['PATH_INFO']
-        puts "----path #{path}  #{Gluttonberg::Middleware::Locales.bypass_path?(path, env)}"
         unless Gluttonberg::Middleware::Locales.bypass_path?(path, env)
-          puts "-----find page"
           unless rails_route?(path)
             page = Gluttonberg::Page.find_by_path(path, env['GLUTTONBERG.LOCALE'] , env['HTTP_HOST'])
             unless page.blank?
