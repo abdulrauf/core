@@ -1,3 +1,6 @@
-%form{:action => "/admin/search_assets" , :id => "asset_search_form"}
-  = text_field_tag :asset_query , params[:asset_query]
-  = submit_tag "Search" , :class => "button"
+.col-md-5.col-sm-5.col-xs-12.form-group.pull-right.top_search
+  %form{:action => "/admin/search_assets" , :id => "asset_search_form"}
+    .input-group
+      = text_field_tag :asset_query , params[:asset_query], {:placeholder => "Search for...", :class => "form-control"}
+      %span.input-group-btn
+        %button.btn.btn-default{:type => "submit"} Go!

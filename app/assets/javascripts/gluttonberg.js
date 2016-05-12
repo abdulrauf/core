@@ -10,8 +10,8 @@
 // WARNING: THE FIRST BLANK LINE MARKS THE END OF WHAT'S TO BE PROCESSED, ANY BLANK LINE SHOULD
 // GO AFTER THE REQUIRES BELOW.
 //
-//= require ./jquery-1-10-1
-//= require ./gb_bootstrap
+//= require ./jquery-2-2-3-min
+//= require ./gb-bootstrap-min
 //= require ./jquery-ui-1-10-3.custom-min
 //= require ./chosen-jquery-min
 //= require ./jquery-validate
@@ -23,4 +23,7 @@
 //= require ./jcrop/js/jquery-Jcrop-min
 //= require ./gb_soundmanager2-jsmin
 //= require ./gb_360player
+
+//= require ./gentelella/custom
+
 //= require ./gb_application

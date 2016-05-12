@@ -20,73 +20,36 @@
 
   %body.nav-md
     .container.body
-      / .navbar.navbar-fixed-top
-      /   .navbar-inner
-      /     .container-fluid
-      /       %a.btn.btn-navbar{"data-target" => ".nav-collapse", "data-toggle" => "collapse"}
-      /         %span.icon-bar
-      /         %span.icon-bar
-      /         %span.icon-bar
-      /       = backend_logo("/assets/gb_logo_top.png" , {:height => "30px"})
-      /       %a.brand{:href => admin_root_path}
-      /         = website_title
-      /       .nav-collapse
-      /         %ul.nav.pull-right
-      /           %li
-      /             %a{:href => "/admin/logout"}
-      /               Logout
-
-      = render "/layouts/top_nav"
-      = render "/layouts/sidebar_nav"
-
-      / page content
-      / .right_col{:role => "main"}
-      /   %div
-      /     .page-title
-      /       .title_left
-      /         %h3 Plain Page
-      /       .title_right
-      /         .col-md-5.col-sm-5.col-xs-12.form-group.pull-right.top_search
-      /           .input-group
-      /             %input.form-control{:placeholder => "Search for...", :type => "text"}
-      /               %span.input-group-btn
-      /                 %button.btn.btn-default{:type => "button"} Go!
-      /     .clearfix
-      /     .row
-      /       .col-md-12.col-sm-12.col-xs-12
-      /         .x_panel{:style => "height:600px;"}
-      /           .x_title
-      /             %h2 Plain Page
-      /             %ul.nav.navbar-right.panel_toolbox
-      /               %li
-      /                 %a.collapse-link
-      /                   %i.fa.fa-chevron-up
-      /               %li.dropdown
-      /                 %a.dropdown-toggle{"aria-expanded" => "false", "data-toggle" => "dropdown", :href => "#", :role => "button"}
-      /                   %i.fa.fa-wrench
-      /                 %ul.dropdown-menu{:role => "menu"}
-      /                   %li
-      /                     %a{:href => "#"} Settings 1
-      /                   %li
-      /                     %a{:href => "#"} Settings 2
-      /               %li
-      /                 %a.close-link
-      /                   %i.fa.fa-close
-      /             .clearfix
+      .main_container
+        = render "/layouts/sidebar_nav"
+        = render "/layouts/top_nav"
 
 
-      .right_col{:role => "main"}
-        = yield
+        .right_col{:role => "main"}
+          = yield
 
-      / .container-fluid
-      /   - unless flash.blank?
-      /     = render "/layouts/flash_messages", :locals => {:close_button => true}
-      /   = yield
+        / .container-fluid
+        /   - unless flash.blank?
+        /     = render "/layouts/flash_messages", :locals => {:close_button => true}
+        /   = yield
 
-      %hr
-      %footer
-        %p
-          &copy;
-          %a{:href => "http://freerangefuture.com", :target => "_blank"}
-            Freerange Future
-          #{Time.now.year}
+        %footer
+          .pull-right
+            %a{:href => "http://freerangefuture.com", :target => "_blank"}
+              Freerange Future
+            #{Time.now.year}
+          .clearfix
+
+    #custom_notifications.custom-notifications.dsp_none
+      %ul.list-unstyled.notifications.clearfix{"data-tabbed_notifications" => "notif-group"}
+      .clearfix
+      #notif-group.tabbed_notifications
+
+      / %hr
+
+      / %footer
+      /   %p
+      /     &copy;
+      /     %a{:href => "http://freerangefuture.com", :target => "_blank"}
+      /       Freerange Future
+      /     #{Time.now.year}

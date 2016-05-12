@@ -24,3 +24,4 @@ capybara-*.html
 /spec/dummy/tmp/*
 *.1rb
 /spec/dummy/log/*
+app/assets/stylesheets/gb_admin-override copy.sass

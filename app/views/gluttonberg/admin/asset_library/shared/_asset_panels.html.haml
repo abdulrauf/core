@@ -1,27 +1,28 @@
 - breadcrumbs_val = ""
 - if defined?(previous_page_title) && !previous_page_title.blank?
   - breadcrumbs_val = "?previous_page_title=#{previous_page_title}&return_url=#{sorter_url}"
-%table{:id => 'assets_table', :class => 'table table-bordered', :cellpadding => 0, :cellspacing => 0, :rel => "" , :summary => "Assets" }
+
+%table{:id => 'assets_table', :class => 'table table-striped responsive-utilities jambo_table', :cellpadding => 0, :cellspacing => 0, :rel => "" , :summary => "Assets" }
   %thead
-    %tr
+    %tr.heading
       %th{:width => 20}
         - unless breadcrumbs_val.blank?
-          = check_box_tag "select_asset_all" , nil, false , :class => "select_all_assets"
-      %th{:width => 170}
-      %th
+          = check_box_tag "select_asset_all" , nil, false , :class => "select_all_assets" 
+      %th.column-title{:width => 170}
+      %th.column-title
         - if defined?(sorter_url)
           = sorter_link("Title",   "asset_name",   sorter_url )
         - else
           Title
-      %th{:class => "author", :width => 80}
+      %th.column-title{:class => "author", :width => 80}
         File Type
-      %th{:class => "date", :style => 'width:18%'}
+      %th.column-title{:class => "date", :style => 'width:18%'}
         - if defined?(sorter_url)
           = sorter_link("Date added",   "date-added",   sorter_url )
         - else
           Date added
 
-      %th{:style => 'width: 28%'}
+      %th.column-title.no-link.last{:style => 'width: 28%'}
   %tbody
     - if @assets.blank?
       %tr

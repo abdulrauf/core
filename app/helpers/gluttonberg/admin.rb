@@ -28,7 +28,7 @@ module Gluttonberg
 
       # Writes out a link styled like a button. To be used in the sub nav only
       def nav_link(*args)
-        class_names = "button"
+        class_names = ""
         class_names = "#{class_names} #{args[2][:class]}" if args.length >= 3
         content_tag(:li, active_link_to(args[0] , args[1] , :title => args[0]), :class => class_names)
       end
