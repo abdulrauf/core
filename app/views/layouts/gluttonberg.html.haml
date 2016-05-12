@@ -28,28 +28,14 @@
         .right_col{:role => "main"}
           = yield
 
-        / .container-fluid
-        /   - unless flash.blank?
-        /     = render "/layouts/flash_messages", :locals => {:close_button => true}
-        /   = yield
+          / .container-fluid
+          /   - unless flash.blank?
+          /     = render "/layouts/flash_messages", :locals => {:close_button => true}
+          /   = yield
 
-        %footer
-          .pull-right
-            %a{:href => "http://freerangefuture.com", :target => "_blank"}
-              Freerange Future
-            #{Time.now.year}
-          .clearfix
-
-    #custom_notifications.custom-notifications.dsp_none
-      %ul.list-unstyled.notifications.clearfix{"data-tabbed_notifications" => "notif-group"}
-      .clearfix
-      #notif-group.tabbed_notifications
-
-      / %hr
-
-      / %footer
-      /   %p
-      /     &copy;
-      /     %a{:href => "http://freerangefuture.com", :target => "_blank"}
-      /       Freerange Future
-      /     #{Time.now.year}
+          %footer
+            .pull-right
+              %a{:href => "http://freerangefuture.com", :target => "_blank"}
+                Freerange Future
+              #{Time.now.year}
+            .clearfix

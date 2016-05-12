@@ -8,66 +8,19 @@
       %ul.nav.navbar-nav.navbar-right
         %li
           %a.user-profile.dropdown-toggle{"aria-expanded" => "false", "data-toggle" => "dropdown", :href => "javascript:;"}
-            = image_tag "img.jpg"
-            John Doe
+            / = image_tag "img.jpg"
+            = current_user.full_name
             %span.fa.fa-angle-down
           %ul.dropdown-menu.dropdown-usermenu.pull-right
             %li
-              %a{:href => "javascript:;"} Profile
+              %a{:href => edit_admin_user_path(current_user)} Profile
+
+            - if can? :manage, Gluttonberg::Setting
+              %li
+                = active_link_to("Configuration", admin_configurations_path , :id => "metadataNav"  , :title => "Configurations")  
+                
             %li
-              %a{:href => "javascript:;"}
-                %span.badge.bg-red.pull-right 50%
-                %span Settings
-            %li
-              %a{:href => "javascript:;"} Help
-            %li
-              %a{:href => "login.html"}
+              %a{:href => "/admin/logout"}
                 %i.fa.fa-sign-out.pull-right
                 Log Out
-        %li.dropdown{:role => "presentation"}
-          %a.dropdown-toggle.info-number{"aria-expanded" => "false", "data-toggle" => "dropdown", :href => "javascript:;"}
-            %i.fa.fa-envelope-o
-            %span.badge.bg-green 6
-          %ul#menu1.dropdown-menu.list-unstyled.msg_list{:role => "menu"}
-            %li
-              %a
-                %span.image
-                  = image_tag "img.jpg"
-                %span
-                  %span John Smith
-                  %span.time 3 mins ago
-                %span.message
-                  Film festivals used to be do-or-die moments for movie makers. They were where...
-            %li
-              %a
-                %span.image
-                  = image_tag "img.jpg"
-                %span
-                  %span John Smith
-                  %span.time 3 mins ago
-                %span.message
-                  Film festivals used to be do-or-die moments for movie makers. They were where...
-            %li
-              %a
-                %span.image
-                  = image_tag "img.jpg"
-                %span
-                  %span John Smith
-                  %span.time 3 mins ago
-                %span.message
-                  Film festivals used to be do-or-die moments for movie makers. They were where...
-            %li
-              %a
-                %span.image
-                  = image_tag "img.jpg"
-                %span
-                  %span John Smith
-                  %span.time 3 mins ago
-                %span.message
-                  Film festivals used to be do-or-die moments for movie makers. They were where...
-            %li
-              .text-center
-                %a
-                  %strong See All Alerts
-                  %i.fa.fa-angle-right
-/ /top navigation
+        
