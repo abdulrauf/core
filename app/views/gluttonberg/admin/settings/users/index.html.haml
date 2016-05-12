@@ -1,57 +1,62 @@
 - @window_title = "Settings"
 - @page_title = "Users"
 
-.row-fluid
+.page-title
+  .title_left
+    %h3
+      = @page_title.html_safe
+  .title_right
+    .col-md-5.col-sm-5.col-xs-12.form-group.pull-right.top_search
+      %form{:action => admin_users_path , :id => "list_search_form"}
+        .input-group
+          = text_field_tag :query , params[:query], {:placeholder => "Search for...", :class => "form-control"}
+          %span.input-group-btn
+            %button.btn.btn-default{:type => "submit"} Go!
 
-  .span9
-    .row-fluid
-      .page-header
-        %h1
-          = @page_title.html_safe
-      .subnav
-        = sub_nav do
+.clearfix
+  
+
+.row
+  = sub_nav do
+    - if can? :manage, User
+      = nav_link("Add New User", new_admin_user_path)
+
+.row
+  - sorter_url = admin_users_path
+
+  - if @users.empty?
+    %p.empty No Users
+  - else
+    %table{:cellpadding => 0, :cellspacing => 0, :summary => "List of users", :class => "table table-striped responsive-utilities jambo_table "}
+      %thead
+        %tr
+          %th
+            = sorter_link("Name",   "first_name",   sorter_url )
+          %th
+            = sorter_link("Email",   "email",   sorter_url )
           - if can? :manage, User
-            = nav_link("Add New User", new_admin_user_path)
+            %th
+              = sorter_link("Type",   "role",   sorter_url )
+          %th
+            =sorter_link("Signup Date",   "date-added",   sorter_url )
+          %th.controls
+            Controls
 
-      - sorter_url = admin_users_path
-
-      - if @users.empty?
-        %p.empty No Users
-      - else
-        %form{:action => admin_users_path , :id => "list_search_form"}
-          = text_field_tag :query , params[:query]
-          = submit_tag "Search" , :class => "button"
-
-        %table{:cellpadding => 0, :cellspacing => 0, :summary => "List of users", :class => "table table-bordered"}
-          %thead
-            %tr
-              %th
-                = sorter_link("Name",   "first_name",   sorter_url )
-              %th
-                = sorter_link("Email",   "email",   sorter_url )
+      %tbody
+        - for user in @users
+          %tr
+            %td
+              = link_to(user.full_name, edit_admin_user_path(user), :class => "")
+            %td
+              = mail_to user.email , user.email
+            - if can? :manage, User
+              %td
+                = user.role.humanize
+            %td
+              = date_format user.created_at
+            %td.controls
+              = link_to("Edit", edit_admin_user_path(user), :class => "btn")
               - if can? :manage, User
-                %th
-                  = sorter_link("Type",   "role",   sorter_url )
-              %th
-                =sorter_link("Signup Date",   "date-added",   sorter_url )
-              %th.controls
-                Controls
+                = link_to("Delete", delete_admin_user_path(user), :class => "btn btn-danger")
 
-          %tbody
-            - for user in @users
-              %tr
-                %td
-                  = link_to(user.full_name, edit_admin_user_path(user), :class => "")
-                %td
-                  = mail_to user.email , user.email
-                - if can? :manage, User
-                  %td
-                    = user.role.humanize
-                %td
-                  = date_format user.created_at
-                %td.controls
-                  = link_to("Edit", edit_admin_user_path(user), :class => "btn")
-                  - if can? :manage, User
-                    = link_to("Delete", delete_admin_user_path(user), :class => "btn btn-danger")
-
-        = will_paginate(@users)
+    = will_paginate(@users)

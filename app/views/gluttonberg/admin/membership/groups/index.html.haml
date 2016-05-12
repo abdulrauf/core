@@ -1,35 +1,37 @@
 - @window_title = "Membership"
 - @page_title = "Groups"
 
-.row-fluid
+.page-title
+  .title_left
+    %h3
+      = @page_title.html_safe
+  .title_right
 
-  .span9
-    .row-fluid
-      .page-header
-        %h1
-          = @page_title.html_safe
-      .subnav
-        = sub_nav do
-          = nav_link("New Group", new_admin_membership_group_url )
+.clearfix
 
-      - if @groups.empty?
-        %p.empty No groups available
-      - else
-        %table{:id => 'pages_table', :class => "table table-bordered #{(can?(:reorder , Gluttonberg::Group) ? "#{drag_tree_table_class} " : " " ) } " , :cellpadding => 0, :cellspacing => 0 , :summary => "Groups", :rel => drag_tree_url }
-          %thead
-            %tr
-              %th Name
-              %th
-              %th.controls
-          %tbody
-            - for group in @groups
-              %tr{:id => drag_tree_row_id(group), :class => drag_tree_row_class(group) + "#{cycle("even", "odd")}"}
-                %td
-                  %span{:class => "#{drag_tree_drag_point_class} page" , :rel => drag_tree_row_id(group)}
-                  = link_to(group.name, edit_admin_membership_group_url(group)   , :class => "")
-                %td{:style => 'width:10%;'}= group.default == true ? "Default Group" : ""
-                %td.controls{:style => 'width:20%'}
-                  = link_to("View group members", group_members_admin_membership_members_path(group)   , :class => "btn")
-                  = link_to("Edit", edit_admin_membership_group_path(group)   , :class => "btn")
-                  = link_to("Delete", delete_admin_membership_group_path(group) , :class => "btn btn-danger" )
+.row
+  = sub_nav do
+    = nav_link("New Group", new_admin_membership_group_url )
+
+.row
+  - if @groups.empty?
+    %p.empty No groups available
+  - else
+    %table{:id => 'pages_table', :class => "table table-striped responsive-utilities jambo_table #{(can?(:reorder , Gluttonberg::Group) ? "#{drag_tree_table_class} " : " " ) } " , :cellpadding => 0, :cellspacing => 0 , :summary => "Groups", :rel => drag_tree_url }
+      %thead
+        %tr.heading
+          %th Name
+          %th
+          %th.controls
+      %tbody
+        - for group in @groups
+          %tr{:id => drag_tree_row_id(group), :class => drag_tree_row_class(group) + "#{cycle("even", "odd")}"}
+            %td
+              %span{:class => "#{drag_tree_drag_point_class} page" , :rel => drag_tree_row_id(group)}
+              = link_to(group.name, edit_admin_membership_group_url(group)   , :class => "")
+            %td{:style => 'width:10%;'}= group.default == true ? "Default Group" : ""
+            %td.controls{:style => 'width:20%'}
+              = link_to("View group members", group_members_admin_membership_members_path(group)   , :class => "btn")
+              = link_to("Edit", edit_admin_membership_group_path(group)   , :class => "btn")
+              = link_to("Delete", delete_admin_membership_group_path(group) , :class => "btn btn-danger" )
 

@@ -1,39 +1,38 @@
 - @window_title = "Content"
 - @page_title = "Pages"
 
-%div
-  .page-title
-    .title_left
-      %h3= @page_title.html_safe
+.page-title
+  .title_left
+    %h3
+      = @page_title.html_safe
+  .title_right
+    .subnav.nav.nav-pills
+      - if can? :manage_object , Gluttonberg::Page.new
+        = link_to('Add New Page', new_admin_page_path , :class => "btn btn-primary")
+        - if !@pages.blank? && can?(:reorder , Gluttonberg::Page)
+          %a#saveNestableTree{:href => "Javascript:;", :class => "btn"}
+            Save Page Order
+          = link_to('Collapse All', "Javascript:;" , :class => "btn collapse_all")
+          = link_to('Expand All', "Javascript:;" , :class => "btn expand_all")
 
+.clearfix
 .row
-  .span9
-    .row-fluid
-      .subnav.nav.nav-pills
-        - if can? :manage_object , Gluttonberg::Page.new
-          = link_to('Add New Page', new_admin_page_path , :class => "btn btn-primary")
-          - if !@pages.blank? && can?(:reorder , Gluttonberg::Page)
-            %a#saveNestableTree{:href => "Javascript:;", :class => "btn"}
-              Save Page Order
-            = link_to('Collapse All', "Javascript:;" , :class => "btn collapse_all")
-            = link_to('Expand All', "Javascript:;" , :class => "btn expand_all")
+  - if @pages.empty?
+    %p.empty No Pages
+  - else
+    .nestable_dragtree
+      %ol.header.dd-list
+        %li.dd-item
+          .dd-column.title
+            Page
+          .dd-column.author
+            Author
+          .dd-column.published_state
+            Status
+          .dd-column.actions
+            &nbsp;
 
-      - if @pages.empty?
-        %p.empty No Pages
-      - else
-        .nestable_dragtree
-          %ol.header.dd-list
-            %li.dd-item
-              .dd-column.title
-                Page
-              .dd-column.author
-                Author
-              .dd-column.published_state
-                Status
-              .dd-column.actions
-                &nbsp;
-
-          .dd{"data-id" => "pageTree", "data-url" => drag_tree_url, "data-saveButton" => "#saveNestableTree", :class => "#{(can?(:reorder , Gluttonberg::Page) ? "dd-sortable" : " " )}" }
-            %ol.dd-list
-              = page_table_rows(@pages)
+      .dd{"data-id" => "pageTree", "data-url" => drag_tree_url, "data-saveButton" => "#saveNestableTree", :class => "#{(can?(:reorder , Gluttonberg::Page) ? "dd-sortable" : " " )}" }
+        %ol.dd-list
+          = page_table_rows(@pages)
 
