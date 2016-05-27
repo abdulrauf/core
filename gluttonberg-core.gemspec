@@ -41,7 +41,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'sass', '3.3.8'
   s.add_dependency 'unicorn', '4.8.3'
   s.add_dependency 'foreman', '0.71.0'
-  s.add_dependency 'rabl', '0.10.1'
+  s.add_dependency 'rabl', '0.12.0'
   s.add_development_dependency 'rspec-rails', '3.0.1'
   s.add_development_dependency 'fakes3', '0.1.5.2'
 
